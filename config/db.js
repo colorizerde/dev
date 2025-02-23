@@ -1,20 +1,21 @@
-const mysql = require("mysql");
-const util = require("util");
+const mysql = require('mysql');
+const util = require('util');
 
+// إعداد الاتصال بقاعدة البيانات باستخدام الـ URL المقدم
 const db = mysql.createConnection({
-  host: "127.0.0.1",
+  host: "crossover.proxy.rlwy.net",
   user: "root",
-  password: "",
-  database: "sedik",
+  password: "WhFNHlpsDGfDxGgPStDYItnlHNIwlIos",
+  database: "railway",
+  port: 58837
 });
 
-// الاتصال بقاعدة البيانات
 db.connect((err) => {
   if (err) {
-    console.error("لم يتم الاتصال بقاعدة البيانات :", err);
+    console.error("❌ لم يتم الاتصال بقاعدة البيانات:", err);
     return;
   }
-  console.log("db connected on");
+  console.log("✅ تم الاتصال بقاعدة البيانات بنجاح");
 });
 
 // تحويل db.query إلى Promise حتى يعمل مع async/await
