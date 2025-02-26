@@ -136,7 +136,7 @@ app.get("/ProjectSpace", (req, res) =>
 initSocket(server);
 
 // جدولة حذف الإعلانات القديمة
-const forumModel = require("./models/forumModel"); // تأكد من إضافة هذا الاستيراد إذا لم يكن موجودًا
+const forumModel = require("./models/ForumModel"); // تأكد من إضافة هذا الاستيراد إذا لم يكن موجودًا
 cron.schedule(
   "0 0 * * *",
   async () => {
