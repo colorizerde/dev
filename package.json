@@ -2,9 +2,10 @@
   "name": "code",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "nodemon --ignore uploads/* app"
+    "start": "node app.js",
+    "vercel-start": "node app.js"
   },
   "author": "",
   "license": "ISC",
