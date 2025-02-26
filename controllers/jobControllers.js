@@ -1,4 +1,4 @@
-const JobModel = require("../models/jobModel");
+const JobModel = require("../models/JobModel");
 const NotificationModel = require("../models/NotificationModel");
 const jwt = require("jsonwebtoken");
 const { getIO } = require("../socket");
@@ -6,6 +6,13 @@ const { getIO } = require("../socket");
 class JobController {
   static async addJob(req, res) {
     try {
+      const userId = req.user.id;
+
+      const canAddJob = await NotificationModel.canUserAddJob(userId);
+      if (!canAddJob.canAddJob) {
+        return res.status(403).json({ success: false, message: canAddJob.message });
+      }
+
       const {
         title,
         description,
@@ -36,59 +43,49 @@ class JobController {
         duration: parseInt(duration, 10) || 0,
         logo: req.file ? req.file.filename : null,
         expires_at: duration ? new Date(Date.now() + parseInt(duration) * 86400000).toISOString() : null,
-        user_id: req.user.id,
+        user_id: userId,
       };
 
       const requiredFields = { title, description, jobType, education, location, experience, duration };
       const missingFields = Object.entries(requiredFields)
-        .filter(([key, value]) => !value || value.trim() === "")
+        .filter(([_, value]) => !value || value.toString().trim() === "")
         .map(([key]) => key);
 
       if (missingFields.length > 0) {
-        return res.status(400).render("add-job", {
-          errorMessage: `الحقول التالية مطلوبة: ${missingFields.join(", ")}.`,
-          successMessage: null,
-          jobData
-        });
+        return res.status(400).json({ success: false, message: `الحقول التالية مطلوبة: ${missingFields.join(", ")}.` });
       }
 
-      if (!isSalaryAfterInterview && (!salaryMin || !salaryMax || isNaN(parseFloat(salaryMin)) || isNaN(parseFloat(salaryMax)))) {
-        return res.status(400).render("add-job", {
-          errorMessage: "يجب إدخال أقل راتب وأعلى راتب بشكل صحيح عند عدم تحديد الراتب بعد المقابلة.",
-          successMessage: null,
-          jobData
-        });
+      if (!isSalaryAfterInterview) {
+        if (!salaryMin || !salaryMax || isNaN(parseFloat(salaryMin)) || isNaN(parseFloat(salaryMax))) {
+          return res.status(400).json({ success: false, message: "يجب إدخال أقل راتب وأعلى راتب بشكل صحيح عند عدم تحديد الراتب بعد المقابلة." });
+        }
+        if (parseFloat(salaryMin) >= parseFloat(salaryMax)) {
+          return res.status(400).json({ success: false, message: "أقل راتب يجب أن يكون أقل من أعلى راتب." });
+        }
+      }
+
+      if (isNaN(jobData.duration) || jobData.duration <= 0) {
+        return res.status(400).json({ success: false, message: "مدة الإعلان يجب أن تكون رقمًا موجبًا." });
       }
 
       const jobId = await JobModel.addJob(jobData);
-      console.log("🚀 Job added with ID:", jobId);
 
-      // إرسال إشعار إداري لجميع المستخدمين النشطين
       const io = getIO();
-      const senderName = (await JobModel.getUserProfile(req.user.id)).name || "المسؤول";
+      const senderName = (await JobModel.getUserProfile(userId)).name || "المسؤول";
       await NotificationModel.createAdminNotificationForAllUsers(
-        req.user.id,
+        userId,
         `وظيفة جديدة: ${title} أُضيفت بواسطة ${senderName}.`,
         jobData.logo ? `/uploads/picjobs/${jobData.logo}` : null
       );
       io.emit("newJobNotification", { 
-        senderId: req.user.id, 
+        senderId: userId, 
         message: `وظيفة جديدة: ${title} أُضيفت بواسطة ${senderName}.`,
         jobId 
       });
 
-      res.status(201).render("add-job", {
-        successMessage: "تم إضافة الوظيفة بنجاح!",
-        errorMessage: null,
-        jobData: {}
-      });
+      res.status(201).json({ success: true, message: "تم إضافة الوظيفة بنجاح!" });
     } catch (err) {
-      console.error("❌ Error adding job:", err);
-      res.status(500).render("add-job", {
-        errorMessage: "حدث خطأ أثناء إضافة الوظيفة. حاول مرة أخرى لاحقًا.",
-        successMessage: null,
-        jobData: req.body
-      });
+      res.status(500).json({ success: false, message: err.message || "حدث خطأ أثناء إضافة الوظيفة." });
     }
   }
 
@@ -109,7 +106,6 @@ class JobController {
 
       await JobModel.addApplication(jobId, applicantId, cover_letter);
 
-      // إرسال إشعار لصاحب الوظيفة
       const job = await JobModel.getJobDetail(jobId);
       const applicantName = (await JobModel.getUserProfile(applicantId)).name || "مستخدم";
       await NotificationModel.createNotification(
@@ -128,27 +124,25 @@ class JobController {
 
       res.status(201).json({ success: true, message: "تم إرسال الطلب بنجاح!" });
     } catch (err) {
-      console.error("❌ Error applying to job:", err);
+      const status = err.message.includes("تقدمت لهذه الوظيفة") ? 400 : 500;
       const message = err.message.includes("تقدمت لهذه الوظيفة") 
         ? "لقد تقدمت لهذه الوظيفة بالفعل." 
         : err.message.includes("الوظيفة غير موجودة") 
         ? "الوظيفة غير موجودة." 
         : "حدث خطأ أثناء إرسال الطلب.";
-      res.status(err.message.includes("تقدمت لهذه الوظيفة") ? 400 : 500).json({ success: false, message });
+      res.status(status).json({ success: false, message });
     }
   }
 
   static async renderAllJobs(req, res) {
     try {
       const jobs = await JobModel.getAllJobs();
-      console.log("Jobs fetched for render:", jobs);
       res.render("listing-job", { 
         jobs,
         errorMessage: null,
         successMessage: null
       });
     } catch (error) {
-      console.error("❌ Error rendering jobs:", error);
       res.status(500).render("listing-job", {
         jobs: [],
         errorMessage: "حدث خطأ أثناء عرض الوظائف.",
@@ -162,15 +156,13 @@ class JobController {
       const jobs = await JobModel.getAllJobs();
       res.json(jobs);
     } catch (error) {
-      console.error("❌ Error fetching jobs:", error);
       res.status(500).json({ error: "حدث خطأ أثناء جلب الوظائف." });
     }
   }
 
   static async renderAllApplications(req, res) {
     try {
-      const ownerId = req.user.id;
-
+      const ownerId = req.user?.id;
       if (!ownerId) {
         return res.status(401).render("jobapplications", {
           applications: [],
@@ -194,7 +186,6 @@ class JobController {
         successMessage: null
       });
     } catch (err) {
-      console.error("❌ Error rendering applications:", err);
       res.status(500).render("jobapplications", {
         applications: [],
         errorMessage: "حدث خطأ أثناء عرض طلبات التوظيف.",
@@ -217,7 +208,6 @@ class JobController {
 
       res.json(enrichedApplications);
     } catch (err) {
-      console.error("❌ Error fetching applications:", err);
       res.status(500).json({ error: "حدث خطأ أثناء جلب الطلبات." });
     }
   }
@@ -249,7 +239,6 @@ class JobController {
         successMessage: null
       });
     } catch (error) {
-      console.error("Error rendering job detail:", error);
       res.status(500).render("jobDetail", {
         job: null,
         currentUserId: null,

@@ -1,33 +1,104 @@
-const forumModel = require("../models/forumModel");
-const JobModel = require("../models/jobModel");
+const forumModel = require("../models/ForumModel");
+const JobModel = require("../models/JobModel");
 const ProjectModel = require("../models/Project");
+const NotificationModel = require("../models/NotificationModel");
 const jwt = require("jsonwebtoken");
 
 class ForumController {
   static async addPost(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).json({ success: false, message: "معرف المستخدم مطلوب. الرجاء تسجيل الدخول." });
       }
       const userId = req.user.id;
 
       const content = req.body.content;
       const images = req.files ? req.files.map((file) => file.filename) : [];
 
-      console.log("بيانات النشر:", { userId, content, images });
+      const canPost = await NotificationModel.canUserPost(userId);
+      if (!canPost.canPost) {
+        return res.status(403).json({ success: false, message: canPost.message });
+      }
 
       await forumModel.addPost(userId, content, images);
-      res.redirect("/forum");
+      res.json({ success: true, message: "تم إضافة المنشور بنجاح!" });
     } catch (err) {
-      console.error("Error in addPost:", err);
-      res.status(500).send("An error occurred while adding the post.");
+      res.status(500).json({ success: false, message: "حدث خطأ أثناء إضافة المنشور." });
+    }
+  }
+
+  static async addComment(req, res) {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(403).json({ success: false, message: "معرف المستخدم مطلوب. الرجاء تسجيل الدخول." });
+      }
+      const userId = req.user.id;
+      const { postId } = req.params;
+      const { content } = req.body;
+
+      if (!content) {
+        return res.status(400).json({ success: false, message: "محتوى التعليق مطلوب." });
+      }
+
+      const canComment = await NotificationModel.canUserComment(userId);
+      if (!canComment.canComment) {
+        return res.status(403).json({ success: false, message: canComment.message });
+      }
+
+      const comment = await forumModel.addComment(postId, userId, content);
+      const userInfo = await forumModel.getUserById(userId);
+
+      res.json({
+        success: true,
+        comment: {
+          id: comment.insertId,
+          content,
+          user_name: userInfo.name,
+          user_avatar: userInfo.avatar 
+            ? (userInfo.avatar.includes('/uploads/avatars/') ? userInfo.avatar : `/uploads/avatars/${userInfo.avatar}`) 
+            : '/uploads/images/pngwing.com.png',
+          user_id: userId,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "خطأ في إضافة التعليق." });
+    }
+  }
+
+  static async addAd(req, res) {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(403).json({ success: false, message: "معرف المستخدم مطلوب. الرجاء تسجيل الدخول." });
+      }
+      const userId = req.user.id;
+      const { title, description } = req.body;
+      const image = req.file ? req.file.filename : null;
+
+      if (!title) {
+        return res.status(400).json({ success: false, message: "العنوان مطلوب." });
+      }
+
+      const canAddAd = await NotificationModel.canUserAddAd(userId);
+      if (!canAddAd.canAddAd) {
+        return res.status(403).json({ success: false, message: canAddAd.message });
+      }
+
+      const adId = await forumModel.addAd(userId, title, description, image);
+      res.json({ 
+        success: true, 
+        message: "تم إضافة الإعلان بنجاح!", 
+        adId,
+        filename: image
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: "حدث خطأ أثناء إضافة الإعلان." });
     }
   }
 
   static async editPostForm(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
 
@@ -49,15 +120,14 @@ class ForumController {
 
       res.render("editPost", { post });
     } catch (err) {
-      console.error("Error fetching post details for editing:", err);
-      res.status(500).send("An error occurred while fetching post details.");
+      res.status(500).send("حدث خطأ أثناء جلب تفاصيل المنشور.");
     }
   }
 
   static async updatePost(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
 
@@ -73,15 +143,14 @@ class ForumController {
       await forumModel.editPost(postId, content, images);
       res.redirect(`/forum`);
     } catch (err) {
-      console.error("Error updating post:", err);
-      res.status(500).send("An error occurred while updating the post.");
+      res.status(500).send("حدث خطأ أثناء تحديث المنشور.");
     }
   }
 
   static async deletePost(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
 
@@ -95,67 +164,36 @@ class ForumController {
       await forumModel.deletePost(postId);
       res.redirect("/forum");
     } catch (err) {
-      console.error("Error in deletePost:", err);
-      res.status(500).send("An error occurred while deleting the post.");
+      res.status(500).send("حدث خطأ أثناء حذف المنشور.");
     }
   }
 
   static async toggleLike(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).json({ success: false, message: "User ID is required. Please log in." });
+        return res.status(403).json({ success: false, message: "معرف المستخدم مطلوب. الرجاء تسجيل الدخول." });
       }
       const userId = req.user.id;
       const postId = req.params.id;
-
+  
+      const canLike = await NotificationModel.canUserLike(userId);
+      if (!canLike.canLike) {
+        return res.status(403).json({ success: false, message: canLike.message });
+      }
+  
       const liked = await forumModel.toggleLike(postId, userId);
       const likeCount = await forumModel.getLikeCount(postId);
-
+  
       res.json({
         success: true,
         liked,
         likeCount,
       });
     } catch (err) {
-      console.error("Error in toggleLike:", err);
       res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء تبديل الإعجاب.",
       });
-    }
-  }
-
-  static async addComment(req, res) {
-    try {
-      if (!req.user || !req.user.id) {
-        return res.status(403).json({ success: false, message: "User ID is required. Please log in." });
-      }
-      const userId = req.user.id;
-      const { postId } = req.params;
-      const { content } = req.body;
-
-      if (!content) {
-        return res.status(400).json({ success: false, message: "محتوى التعليق مطلوب." });
-      }
-
-      const comment = await forumModel.addComment(postId, userId, content);
-      const userInfo = await forumModel.getUserById(userId);
-
-      res.json({
-        success: true,
-        comment: {
-          id: comment.insertId,
-          content,
-          user_name: userInfo.name,
-          user_avatar: userInfo.avatar 
-            ? (userInfo.avatar.includes('/uploads/avatars/') ? userInfo.avatar : `/uploads/avatars/${userInfo.avatar}`) 
-            : '/uploads/images/pngwing.com.png',
-          user_id: userId,
-        },
-      });
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      res.status(500).json({ success: false, message: "خطأ في إضافة التعليق." });
     }
   }
 
@@ -173,7 +211,6 @@ class ForumController {
 
       res.json({ success: true, comments: enrichedComments });
     } catch (error) {
-      console.error("Error fetching comments:", error);
       res.status(500).json({ success: false, message: "خطأ في جلب التعليقات." });
     }
   }
@@ -181,7 +218,7 @@ class ForumController {
   static async toggleLikeComment(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
       const { commentId } = req.params;
@@ -189,15 +226,14 @@ class ForumController {
       const liked = await forumModel.toggleLikeComment(commentId, userId);
       res.json({ liked });
     } catch (err) {
-      console.error("Error toggling like on comment:", err);
-      res.status(500).send("Error toggling like on comment.");
+      res.status(500).send("حدث خطأ أثناء تبديل الإعجاب على التعليق.");
     }
   }
 
   static async sharePost(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
       const postId = req.params.id;
@@ -205,15 +241,14 @@ class ForumController {
       await forumModel.sharePost(userId, postId);
       res.redirect("/forum");
     } catch (err) {
-      console.error("Error in sharePost:", err);
-      res.status(500).send("An error occurred while sharing the post.");
+      res.status(500).send("حدث خطأ أثناء مشاركة المنشور.");
     }
   }
 
   static async hidePost(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
       const postId = req.params.id;
@@ -224,41 +259,7 @@ class ForumController {
       }
       res.redirect("/forum");
     } catch (err) {
-      console.error("Error in hidePost:", err);
-      res.status(500).send("An error occurred while hiding the post.");
-    }
-  }
-
-  static async addAd(req, res) {
-    try {
-      if (!req.user || !req.user.id) {
-        return res.status(403).json({ success: false, message: "User ID is required. Please log in." });
-      }
-      const userId = req.user.id;
-      const { title, description } = req.body;
-      const image = req.file ? req.file.filename : null;
-
-      if (!title) {
-        return res.status(400).json({ success: false, message: "العنوان مطلوب." });
-      }
-
-      const dailyAdCount = await forumModel.getDailyAdCount(userId);
-      if (dailyAdCount >= 3) {
-        return res.status(403).json({ success: false, message: "لقد وصلت إلى الحد الأقصى للإعلانات اليومية (3 إعلانات)." });
-      }
-
-      console.log("بيانات الإعلان:", { userId, title, description, image });
-
-      const adId = await forumModel.addAd(userId, title, description, image);
-      res.json({ 
-        success: true, 
-        message: "تم إضافة الإعلان بنجاح!", 
-        adId,
-        filename: image
-      });
-    } catch (err) {
-      console.error("Error in addAd:", err);
-      res.status(500).json({ success: false, message: "حدث خطأ أثناء إضافة الإعلان." });
+      res.status(500).send("حدث خطأ أثناء إخفاء المنشور.");
     }
   }
 
@@ -273,13 +274,13 @@ class ForumController {
         try {
           const decoded = jwt.verify(token, "your_jwt_secret");
           userId = decoded.id;
-          const userInfo = await forumModel.getUserAvatar(userId);
+          const userInfo = await forumModel.getUserById(userId);
           currentUserAvatar = userInfo.avatar 
             ? (userInfo.avatar.includes('/uploads/avatars/') ? userInfo.avatar : `/uploads/avatars/${userInfo.avatar}`) 
             : '/uploads/images/pngwing.com.png';
           currentUserName = userInfo.name;
         } catch (err) {
-          console.error("Invalid token:", err);
+          // لا تسجيل خطأ هنا، فقط تجاهل الرمز غير الصالح
         }
       }
 
@@ -288,12 +289,6 @@ class ForumController {
       const jobs = await JobModel.getAllJobs();
       const projects = await ProjectModel.findAll();
 
-      console.log("Current User ID:", userId);
-      console.log("Current User Avatar:", currentUserAvatar);
-      console.log("Posts before processing:", posts);
-      console.log("Ads fetched:", ads);
-
-      // تعديل مسار الصور للمنشورات والإعلانات مع حساب showEditDeleteButtons بشكل منفصل
       const enrichedPosts = await Promise.all(posts.map(async post => {
         const isOwner = userId ? await forumModel.isPostOwner(post.id, userId) : false;
         const liked = userId ? await forumModel.hasLikedPost(post.id, userId) : false;
@@ -321,8 +316,6 @@ class ForumController {
           : '/uploads/images/pngwing.com.png'
       }));
 
-      console.log("Posts after processing:", enrichedPosts);
-
       res.render("forum", { 
         posts: enrichedPosts, 
         ads: enrichedAds, 
@@ -333,8 +326,7 @@ class ForumController {
         currentUserName 
       });
     } catch (err) {
-      console.error("Error in getAllPosts:", err);
-      res.status(500).send("An error occurred while fetching posts.");
+      res.status(500).send("حدث خطأ أثناء جلب المنشورات.");
     }
   }
 
@@ -348,7 +340,7 @@ class ForumController {
           const decoded = jwt.verify(token, "your_jwt_secret");
           userId = decoded.id;
         } catch (err) {
-          console.error("Invalid token:", err);
+          // لا تسجيل خطأ هنا، فقط تجاهل الرمز غير الصالح
         }
       }
 
@@ -371,72 +363,14 @@ class ForumController {
 
       res.render("postDetails", { post, currentUserId: userId });
     } catch (err) {
-      console.error("Error fetching post details:", err);
-      res.status(500).send("An error occurred while fetching post details.");
-    }
-  }
-
-  static async addProject(req, res) {
-    try {
-      if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
-      }
-      const userId = req.user.id;
-
-      const { title, description, budget, duration } = req.body;
-
-      const projectData = {
-        title,
-        description,
-        budget,
-        duration,
-        user_id: userId,
-      };
-
-      await ProjectModel.create(projectData);
-      res.redirect("/forum");
-    } catch (err) {
-      console.error("Error in addProject:", err);
-      res.status(500).send("An error occurred while adding the project.");
-    }
-  }
-
-  static async getProjectDetails(req, res) {
-    try {
-      const token = req.cookies.token;
-      let userId = null;
-
-      if (token) {
-        try {
-          const decoded = jwt.verify(token, "your_jwt_secret");
-          userId = decoded.id;
-        } catch (err) {
-          console.error("Invalid token:", err);
-        }
-      }
-
-      const projectId = parseInt(req.params.id, 10);
-      console.log(`Attempting to fetch project with ID: ${projectId}`);
-
-      const project = await ProjectModel.findById(projectId);
-      console.log("Project fetched:", project);
-
-      if (!project) {
-        console.log(`No project found with ID: ${projectId}`);
-        return res.status(404).send("المشروع غير موجود.");
-      }
-
-      res.render("projectDetails", { project, currentUserId: userId });
-    } catch (err) {
-      console.error("Error fetching project details:", err);
-      res.status(500).send("An error occurred while fetching project details.");
+      res.status(500).send("حدث خطأ أثناء جلب تفاصيل المنشور.");
     }
   }
 
   static async uploadAvatar(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
 
@@ -445,11 +379,10 @@ class ForumController {
         await forumModel.uploadAvatar(userId, avatar);
         res.redirect(`/profile?userId=${userId}`);
       } else {
-        res.status(400).send("Avatar image is required.");
+        res.status(400).send("صورة الأفاتار مطلوبة.");
       }
     } catch (err) {
-      console.error("Error in uploadAvatar:", err);
-      res.status(500).send("An error occurred while uploading the avatar.");
+      res.status(500).send("حدث خطأ أثناء رفع الأفاتار.");
     }
   }
 
@@ -462,24 +395,23 @@ class ForumController {
 
       const user = await forumModel.getUserById(userId);
       if (!user) {
-        return res.status(404).send("User not found");
+        return res.status(404).send("المستخدم غير موجود");
       }
 
       user.avatar = user.avatar 
         ? (user.avatar.includes('/uploads/avatars/') ? user.avatar : `/uploads/avatars/${user.avatar}`) 
         : '/uploads/images/pngwing.com.png';
 
-      console.log("Rendering profile for user:", { userId, user });
       res.render("profile", { user });
     } catch (err) {
-      console.error("❌ Error rendering profile:", err);
-      res.status(500).send("حدث خطأ أثناء عرض البروفايل.");
+      res.status(500).send("حدث خطأ أثناء عرض الملف الشخصي.");
     }
   }
+
   static async getUserPosts(req, res) {
     try {
       if (!req.user || !req.user.id) {
-        return res.status(403).send("User ID is required. Please log in.");
+        return res.status(403).send("معرف المستخدم مطلوب. الرجاء تسجيل الدخول.");
       }
       const userId = req.user.id;
 
@@ -512,8 +444,7 @@ class ForumController {
         currentUserName 
       });
     } catch (err) {
-      console.error("Error in getUserPosts:", err);
-      res.status(500).send("An error occurred while fetching user posts.");
+      res.status(500).send("حدث خطأ أثناء جلب منشورات المستخدم.");
     }
   }
 }

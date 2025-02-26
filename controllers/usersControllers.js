@@ -51,7 +51,6 @@ class UsersControllers {
       res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 * 1000 });
       res.redirect("/profile");
     } catch (error) {
-      console.error("خطأ أثناء تسجيل المستخدم:", error);
       res.render("signup", {
         errorMessage: error.code === "ER_DUP_ENTRY" ? "البريد الإلكتروني مسجل بالفعل، الرجاء استخدام بريد آخر." : "حدث خطأ أثناء التسجيل، حاول مرة أخرى.",
       });
@@ -76,7 +75,6 @@ class UsersControllers {
       res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 * 1000 });
       res.redirect("/profile");
     } catch (error) {
-      console.error("خطأ أثناء تسجيل الدخول:", error);
       res.render("login", { errorMessage: "حدث خطأ أثناء تسجيل الدخول، حاول مرة أخرى لاحقًا." });
     }
   }
@@ -86,10 +84,10 @@ class UsersControllers {
       res.clearCookie("token");
       res.redirect("/login");
     } catch (error) {
-      console.error("خطأ أثناء تسجيل الخروج:", error);
       res.status(500).render("profile", { errorMessage: "حدث خطأ أثناء تسجيل الخروج، حاول مرة أخرى.", successMessage: null });
     }
   }
+
   static async forgotPasswordControllers(req, res) {
     const { email } = req.body;
   
@@ -104,7 +102,6 @@ class UsersControllers {
       await usersModels.saveOTP(user.id, otp);
   
       const accessToken = await oAuth2Client.getAccessToken();
-      console.log("Access Token:", accessToken.token);
       if (!accessToken.token) throw new Error("فشل الحصول على Access Token");
   
       const transporter = nodemailer.createTransport({
@@ -120,7 +117,7 @@ class UsersControllers {
           accessToken: accessToken.token,
         },
         tls: {
-          rejectUnauthorized: false, // تجاوز التحقق من الشهادة
+          rejectUnauthorized: false,
         },
       });
   
@@ -132,18 +129,17 @@ class UsersControllers {
       };
   
       await transporter.sendMail(mailOptions);
-      console.log("تم إرسال البريد بنجاح إلى:", email);
   
       res.render("forgotPassword", {
         successMessage: "تم إرسال رابط التحقق مع رمز OTP إلى بريدك الإلكتروني.",
       });
     } catch (error) {
-      console.error("خطأ أثناء طلب إعادة تعيين كلمة المرور:", error);
       res.render("forgotPassword", {
         errorMessage: "مشكلة في الاتصال، تحقق من الشبكة أو حاول مرة أخرى.",
       });
     }
   }
+
   static async verifyOTPControllers(req, res) {
     const { token, otp1, otp2, otp3, otp4 } = req.body;
     const otp = `${otp1}${otp2}${otp3}${otp4}`;
@@ -163,7 +159,6 @@ class UsersControllers {
       await usersModels.clearOTP(decoded.id);
       res.render("resetPassword", { token });
     } catch (error) {
-      console.error("خطأ أثناء التحقق من OTP:", error);
       res.render("otpVerification", {
         errorMessage: error.name === "TokenExpiredError" ? "انتهت صلاحية الرمز، اطلب رمزًا جديدًا." : "الرابط أو الرمز غير صالح، حاول مرة أخرى.",
         token,
@@ -183,46 +178,38 @@ class UsersControllers {
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
       await usersModels.saveOTP(decoded.id, otp);
 
-      try {
-        const accessToken = await oAuth2Client.getAccessToken();
-        console.log("Access Token:", accessToken.token);
-        if (!accessToken.token) throw new Error("فشل الحصول على Access Token");
+      const accessToken = await oAuth2Client.getAccessToken();
+      if (!accessToken.token) throw new Error("فشل الحصول على Access Token");
 
-        const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 465,
-          secure: true, // استخدام SSL
-          auth: {
-            type: "OAuth2",
-            user: process.env.EMAIL_USER,
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-            accessToken: accessToken.token,
-          },
-        });
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          type: "OAuth2",
+          user: process.env.EMAIL_USER,
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+          accessToken: accessToken.token,
+        },
+      });
 
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: user.email,
-          subject: "إعادة إرسال رمز OTP",
-          text: `رمز OTP الجديد الخاص بك هو: ${otp}. استخدم هذا الرابط للتحقق: http://localhost:3000/verify-otp?token=${token}`,
-        };
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "إعادة إرسال رمز OTP",
+        text: `رمز OTP الجديد الخاص بك هو: ${otp}. استخدم هذا الرابط للتحقق: http://localhost:3000/verify-otp?token=${token}`,
+      };
 
-        await transporter.sendMail(mailOptions);
-        console.log("تم إرسال رمز OTP جديد إلى:", user.email);
+      await transporter.sendMail(mailOptions);
 
-        res.render("otpVerification", {
-          successMessage: "تم إرسال رمز OTP جديد إلى بريدك الإلكتروني.",
-          token,
-          email: user.email,
-        });
-      } catch (mailError) {
-        console.error("تفاصيل خطأ إرسال البريد:", mailError);
-        throw new Error(`فشل إرسال البريد الإلكتروني: ${mailError.message}`);
-      }
+      res.render("otpVerification", {
+        successMessage: "تم إرسال رمز OTP جديد إلى بريدك الإلكتروني.",
+        token,
+        email: user.email,
+      });
     } catch (error) {
-      console.error("خطأ أثناء إعادة إرسال OTP:", error);
       res.render("otpVerification", {
         errorMessage: error.message.includes("Invalid login")
           ? "فشلت المصادقة مع Gmail، تحقق من إعدادات الحساب أو الـ Refresh Token."
@@ -246,7 +233,6 @@ class UsersControllers {
         successMessage: "تم إعادة تعيين كلمة المرور بنجاح، يمكنك تسجيل الدخول الآن.",
       });
     } catch (error) {
-      console.error("خطأ أثناء إعادة تعيين كلمة المرور:", error);
       res.render("resetPassword", {
         errorMessage: error.name === "TokenExpiredError" ? "انتهت صلاحية الرابط، اطلب رابطًا جديدًا." : "الرابط غير صالح أو منتهي الصلاحية، حاول مرة أخرى.",
         token,
@@ -262,7 +248,6 @@ class UsersControllers {
       await usersModels.updateUser(userId, name, null, age, gender, country, language, occupation, phone, portfolio);
       res.status(200).json({ message: "تم تحديث المعلومات بنجاح" });
     } catch (error) {
-      console.error("خطأ أثناء تحديث البيانات:", error);
       res.status(500).json({ error: "حدث خطأ أثناء تحديث البيانات، حاول مرة أخرى." });
     }
   }

@@ -1,13 +1,14 @@
 const mysql = require('mysql');
 const util = require('util');
+require('dotenv').config(); // تحميل المتغيرات من .env
 
-// إعداد الاتصال بقاعدة البيانات باستخدام الـ URL المقدم
+// إعداد الاتصال بقاعدة البيانات باستخدام المتغيرات البيئية
 const db = mysql.createConnection({
-  host: "crossover.proxy.rlwy.net",
-  user: "root",
-  password: "WhFNHlpsDGfDxGgPStDYItnlHNIwlIos",
-  database: "railway",
-  port: 58837
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT
 });
 
 db.connect((err) => {

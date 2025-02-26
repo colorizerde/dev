@@ -9,7 +9,6 @@ class MessagesProjectController {
 
       res.json({ success: true, messages });
     } catch (error) {
-      console.error("خطأ أثناء جلب الرسائل:", error);
       res.status(500).json({ success: false, message: "حدث خطأ في الخادم" });
     }
   }
@@ -23,8 +22,6 @@ class MessagesProjectController {
       }
       const senderId = req.user.id;
 
-      console.log("بيانات الطلب:", { conversationId, message, senderId });
-
       if (!conversationId) {
         return res.status(400).json({
           success: false,
@@ -36,7 +33,6 @@ class MessagesProjectController {
 
       // جلب المحادثة الحالية إن وجدت
       const existingConversation = await MessagesProject.findByConversationId(conversationId);
-      console.log("نتيجة جلب المحادثة:", existingConversation);
 
       if (!existingConversation || existingConversation.length === 0) {
         // إذا لم تكن المحادثة موجودة، جلب بيانات الطلب من project_applications
@@ -50,21 +46,10 @@ class MessagesProjectController {
 
         projectId = request.project_id;
         receiverId = senderId === request.applicant_id ? request.user_id : request.applicant_id;
-
-        console.log("إنشاء محادثة جديدة باستخدام:", { projectId, receiverId });
       } else {
         projectId = existingConversation[0].project_id;
         receiverId = existingConversation[0].receiver_id;
       }
-
-      console.log("القيم المستخدمة لإنشاء الرسالة:", {
-        conversation_id: conversationId,
-        sender_id: senderId,
-        message,
-        project_id: projectId,
-        receiver_id: receiverId,
-        status: "accepted",
-      });
 
       await MessagesProject.create({
         conversation_id: conversationId,
@@ -81,7 +66,6 @@ class MessagesProjectController {
         conversationId: conversationId,
       });
     } catch (error) {
-      console.error("خطأ أثناء إرسال الرسالة:", error);
       res.status(500).json({ success: false, message: "حدث خطأ في الخادم", error: error.message });
     }
   }
@@ -101,7 +85,6 @@ class MessagesProjectController {
 
       res.render("messages_project", { conversationId, projectName });
     } catch (error) {
-      console.error("خطأ أثناء عرض صفحة المحادثة:", error);
       res.status(500).send("حدث خطأ في الخادم");
     }
   }
@@ -117,7 +100,6 @@ class MessagesProjectController {
 
       res.render("ongoing_chats", { chats });
     } catch (error) {
-      console.error("خطأ أثناء جلب المحادثات الجارية:", error);
       res.status(500).send("حدث خطأ في الخادم");
     }
   }

@@ -5,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>إضافة وظيفة</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- إضافة SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-     :root {
-  --border-color: #d1c4e9; /* بنفسجي فاتح للحدود */
-  --shadow-color: rgba(106, 27, 154, 0.2); /* ظلال بنفسجية */
- 
-}
+    :root {
+      --primary-color: #6c5ce7;
+      --secondary-color: #8e7bff;
+      --background-color: #f7f9fc;
+      --form-bg: #ffffff;
+      --border-color: #d1c4e9;
+      --shadow-color: rgba(106, 27, 154, 0.2);
+      --text-color: #2d3748;
+      --muted-text: #718096;
+      --border-radius: 14px;
+      --transition: 0.3s ease;
+    }
 
     * {
       margin: 0;
@@ -19,22 +28,20 @@
       font-family: "Cairo", sans-serif;
     }
 
-    html {
-      direction: ltr;
-    }
-
+   
     body {
       background-color: var(--background-color);
-      color: #6c5ce7;
+      color: var(--text-color);
       line-height: 1.6;
-      padding: 0px;
+   
     }
 
     h2 {
       text-align: center;
       font-size: 28px;
       margin-bottom: 20px;
-      color: #6c5ce7;
+      color: var(--primary-color);
+      font-weight: 700;
     }
 
     form {
@@ -43,12 +50,11 @@
       background-color: var(--form-bg);
       padding: 30px;
       border-radius: var(--border-radius);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 16px var(--shadow-color);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 8px 16px var(--shadow-color);
       border: 1px solid var(--border-color);
     }
 
@@ -56,7 +62,8 @@
       display: block;
       font-size: 16px;
       margin: 15px 0 5px;
-      color: #6c5ce7;
+      color: var(--primary-color);
+      font-weight: 600;
     }
 
     input,
@@ -65,16 +72,17 @@
       width: 100%;
       padding: 12px;
       font-size: 14px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: var(--border-radius);
       margin-bottom: 10px;
-      transition: border-color var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
 
     input:focus,
     textarea:focus,
     select:focus {
       border-color: var(--primary-color);
+      box-shadow: 0 0 8px var(--shadow-color);
       outline: none;
     }
 
@@ -125,24 +133,23 @@
     }
 
     button {
-      width: 100%;
+      width: 180px;
       padding: 12px;
-      background-color: #6c5ce7;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
       border: none;
-      width: 180px;
       font-size: 16px;
       border-radius: var(--border-radius);
       cursor: pointer;
       margin-top: 20px;
-      transition: background-color var(--transition);
+      transition: transform var(--transition), box-shadow var(--transition);
     }
 
     button:hover {
-      background-color: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px var(--shadow-color);
     }
 
-    /* تعطيل الحقول عند تفعيل الخيار */
     .disabled {
       background-color: #e9ecef;
       border-color: #ced4da;
@@ -151,9 +158,10 @@
     }
   </style>
 </head>
+<%- include('partials/headerhome') %>
+<%- include('partials/headeraction') %>
 <body>
-  <%- include('partials/headerhome') %>
-  <%- include('partials/headeraction') %>
+
   <h2>إضافة وظيفة</h2>
   <form id="jobForm">
     <label for="title">المسمى الوظيفي:</label>
@@ -249,7 +257,7 @@
       event.preventDefault();
       const formData = new FormData(this);
 
-      // إذا كان خيار "تحديد الراتب بعد المقابلة" مفعلاً، تأكدي من إرسال قيمة فارغة للحقول
+      // إذا كان خيار "تحديد الراتب بعد المقابلة" مفعلاً، تأكد من إرسال قيمة فارغة للحقول
       if (salaryAfterInterviewCheckbox.checked) {
         formData.set("salaryMin", "");
         formData.set("salaryMax", "");
@@ -263,15 +271,35 @@
         });
         const result = await response.json();
         console.log("✅ استجابة السيرفر:", result);
+
         if (response.ok) {
-          alert(result.message || "تمت إضافة الوظيفة بنجاح");
-          window.location.href = "/listing-job"; // إعادة توجيه بعد النجاح
+          Swal.fire({
+            icon: "success",
+            title: "تم الإضافة!",
+            text: result.message || "تمت إضافة الوظيفة بنجاح",
+            confirmButtonText: "موافق",
+            confirmButtonColor: "#6c5ce7",
+          }).then(() => {
+            window.location.href = "/listing-job";
+          });
         } else {
-          alert("❌ فشل في إضافة الوظيفة: " + result.message);
+          Swal.fire({
+            icon: "error",
+            title: "فشل الإضافة",
+            text: result.message || "فشل في إضافة الوظيفة، حاول مرة أخرى.",
+            confirmButtonText: "موافق",
+            confirmButtonColor: "#e74c3c",
+          });
         }
       } catch (error) {
         console.error("❌ خطأ:", error);
-        alert("❌ حدث خطأ أثناء إرسال البيانات إلى السيرفر.");
+        Swal.fire({
+          icon: "error",
+          title: "خطأ!",
+          text: error.message || "حدث خطأ أثناء إرسال البيانات إلى السيرفر.",
+          confirmButtonText: "موافق",
+          confirmButtonColor: "#e74c3c",
+        });
       }
     });
   </script>

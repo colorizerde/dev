@@ -52,7 +52,7 @@ class FriendshipModel {
   static getAllUsersExceptCurrent(userId, offset = 0, limit = 10) {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT u.id, u.name, u.avatar, u.last_active, u.is_active
+        SELECT u.id, u.name, u.avatar, u.last_active, u.is_active, u.country, u.age, u.language
         FROM users u
         WHERE u.id != ?
         AND u.id NOT IN (
@@ -242,7 +242,7 @@ class FriendshipModel {
   static searchUsers(userId, searchQuery) {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT u.id, u.name, u.avatar, u.is_active,
+        SELECT u.id, u.name, u.avatar, u.is_active, u.country, u.age, u.language,
           CASE 
             WHEN f.status = 'accepted' THEN 'friend'
             WHEN fr.status = 'pending' AND fr.sender_id = ? THEN 'request_sent'

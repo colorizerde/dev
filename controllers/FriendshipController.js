@@ -36,7 +36,10 @@ class FriendshipController {
       const enrichedUsers = allUsers.map(user => ({
         ...user,
         avatar: user.avatar ? (user.avatar.includes('/uploads/avatars/') ? user.avatar : `/uploads/avatars/${user.avatar}`) : '/uploads/images/pngwing.com.png',
-        isActive: user.is_active
+        isActive: user.is_active,
+        country: user.country || 'غير محدد', // التأكد من وجود الدولة
+        age: user.age || 'غير محدد',         // التأكد من وجود العمر
+        language: user.language || 'غير محدد' // التأكد من وجود اللغة
       }));
 
       await FriendshipModel.updateLastActive(userId);
@@ -52,7 +55,6 @@ class FriendshipController {
         successMessage: null
       });
     } catch (error) {
-      console.error("Error fetching friends data:", error);
       res.status(500).render("friends", {
         friends: [],
         friendRequests: [],
@@ -102,7 +104,10 @@ class FriendshipController {
       const enrichedSearchResults = searchResults.map(result => ({
         ...result,
         avatar: result.avatar ? (result.avatar.includes('/uploads/avatars/') ? result.avatar : `/uploads/avatars/${result.avatar}`) : '/uploads/images/pngwing.com.png',
-        isActive: result.is_active
+        isActive: result.is_active,
+        country: result.country || 'غير محدد', // إضافة الدولة
+        age: result.age || 'غير محدد',         // إضافة العمر
+        language: result.language || 'غير محدد' // إضافة اللغة
       }));
 
       await FriendshipModel.updateLastActive(userId);
@@ -118,7 +123,6 @@ class FriendshipController {
         successMessage: null
       });
     } catch (error) {
-      console.error("Error searching for friends:", error);
       res.status(500).render("friends", {
         friends: [],
         friendRequests: [],
@@ -208,7 +212,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error sending friend request:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -235,7 +238,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد', // إضافة الدولة
+          age: u.age || 'غير محدد',         // إضافة العمر
+          language: u.language || 'غير محدد' // إضافة اللغة
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء إرسال طلب الصداقة",
@@ -292,7 +298,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error canceling friend request:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -319,7 +324,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء إلغاء طلب الصداقة",
@@ -372,7 +380,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error unblocking friend:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -399,7 +406,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء إلغاء حظر الصديق",
@@ -453,7 +463,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error accepting friend request:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -480,7 +489,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء قبول طلب الصداقة",
@@ -531,7 +543,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error rejecting friend request:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -558,7 +569,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء رفض طلب الصداقة",
@@ -616,7 +630,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error blocking friend:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -643,7 +656,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء حظر الصديق",
@@ -695,7 +711,6 @@ class FriendshipController {
 
       res.redirect("/friends");
     } catch (error) {
-      console.error("Error removing friend:", error);
       const userId = jwt.verify(req.cookies.token, "your_jwt_secret").id;
       const friends = await FriendshipModel.getAcceptedFriends(userId, 0, 10);
       const friendRequests = await FriendshipModel.getFriendRequests(userId);
@@ -722,7 +737,10 @@ class FriendshipController {
         users: allUsers.map(u => ({
           ...u,
           avatar: u.avatar ? (u.avatar.includes('/uploads/avatars/') ? u.avatar : `/uploads/avatars/${u.avatar}`) : '/uploads/images/pngwing.com.png',
-          isActive: u.is_active
+          isActive: u.is_active,
+          country: u.country || 'غير محدد',
+          age: u.age || 'غير محدد',
+          language: u.language || 'غير محدد'
         })),
         unreadCount,
         errorMessage: error.message || "حدث خطأ أثناء إزالة الصديق",
@@ -794,7 +812,6 @@ class FriendshipController {
         successMessage: null
       });
     } catch (error) {
-      console.error("Error viewing friend profile:", error);
       res.status(500).render("profile", {
         user: null,
         isFriend: false,
@@ -843,7 +860,6 @@ class FriendshipController {
         successMessage: null
       });
     } catch (error) {
-      console.error("Error displaying friend profile:", error);
       res.status(500).render("profile", {
         user: null,
         friendStatus: 'no_friend',
@@ -896,8 +912,7 @@ class FriendshipController {
         res.json({ success: false, message: result.message });
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
-      res.status(500).json({ success: false, message: "حدث خطأ في الخادم" });
+      res.status(500).json({ success: false, message: error.message || "حدث خطأ في الخادم" });
     }
   }
 
@@ -987,7 +1002,6 @@ class FriendshipController {
           return res.status(400).json({ success: false, message: "الإجراء غير صالح" });
       }
     } catch (error) {
-      console.error("Error in handleFriendAction:", error);
       res.status(500).json({ success: false, message: error.message || "حدث خطأ في الخادم" });
     }
   }
@@ -1012,7 +1026,6 @@ class FriendshipController {
         sender_avatar: request.sender_avatar ? (request.sender_avatar.includes('/uploads/avatars/') ? request.sender_avatar : `/uploads/avatars/${request.sender_avatar}`) : '/uploads/images/pngwing.com.png'
       });
     } catch (error) {
-      console.error("Error fetching friend request:", error);
       res.status(500).json({ error: "خطأ أثناء جلب طلب الصداقة" });
     }
   }
@@ -1033,7 +1046,6 @@ class FriendshipController {
         isActive: friend.is_active
       });
     } catch (error) {
-      console.error("Error fetching friend:", error);
       res.status(500).json({ error: "خطأ أثناء جلب بيانات الصديق" });
     }
   }
@@ -1052,7 +1064,6 @@ class FriendshipController {
         avatar: blocked.avatar ? (blocked.avatar.includes('/uploads/avatars/') ? blocked.avatar : `/uploads/avatars/${blocked.avatar}`) : '/uploads/images/pngwing.com.png'
       });
     } catch (error) {
-      console.error("Error fetching blocked friend:", error);
       res.status(500).json({ error: "خطأ أثناء جلب بيانات الصديق المحظور" });
     }
   }

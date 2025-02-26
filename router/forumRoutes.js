@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const ForumController = require("../controllers/forumController"); // تأكدي من المسار
+const ForumController = require("../controllers/ForumController");
 const fs = require("fs");
 const multer = require("multer");
 const path = require("path");
@@ -49,6 +49,6 @@ router.get("/comments/:postId", ForumController.getComments);
 router.post("/comments/:commentId/like", verifyToken, ForumController.toggleLikeComment);
 router.get("/post/:postId", ForumController.getPostDetails);
 router.post("/ad", verifyToken, adUpload.single("image"), ForumController.addAd);
-router.get("/my-posts", verifyToken, ForumController.getUserPosts); // المسار الجديد
-router.get("/my-posts", (req, res) => res.render("/my-posts"));
+router.get("/my-posts", verifyToken, ForumController.getUserPosts);
+
 module.exports = router;

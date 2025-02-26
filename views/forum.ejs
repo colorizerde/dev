@@ -3,63 +3,358 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>المنتدى</title>
-  <link rel="stylesheet" href="/css/forum.css">
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  
+  <!-- تحسين SEO: إضافة وصف وعنوان ديناميكي -->
+  <meta name="description" content="المنتدى الإبداعي على Colorizer - شارك منشوراتك، اعرض إعلاناتك، وتواصل مع المبدعين." />
+  <meta name="keywords" content="منتدى, Colorizer, تصميم, إبداع, مشاركات" />
+  <meta name="robots" content="index, follow" />
+  <meta name="googlebot" content="index, follow" />
+  <title>المنتدى | Colorizer</title>
+
+  <!-- تحسين الأداء: تحميل Google Fonts و FontAwesome مع تأخير -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+
+  <!-- تحسين الأداء: إضافة SweetAlert2 مضغوط مع defer -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" media="print" onload="this.media='all'" />
+
+  <!-- تحسين الأداء: تحميل مسبق لصورة المستخدم -->
+  <link rel="preload" href="<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>" as="image" />
+
+  <!-- Open Graph لتحسين المشاركة على الشبكات الاجتماعية -->
+  <meta property="og:title" content="المنتدى | Colorizer" />
+  <meta property="og:description" content="المنتدى الإبداعي على Colorizer - شارك منشوراتك، اعرض إعلاناتك، وتواصل مع المبدعين." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.colorizer.com/forum" />
+  <meta property="og:image" content="<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>" />
+  <meta property="og:image:alt" content="صورة المستخدم في المنتدى" />
+  <meta property="og:site_name" content="Colorizer" />
+  <meta property="og:locale" content="ar_AR" />
+
+  <!-- Twitter Card لتحسين المشاركة على تويتر -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="المنتدى | Colorizer" />
+  <meta name="twitter:description" content="المنتدى الإبداعي على Colorizer - شارك منشوراتك، اعرض إعلاناتك، وتواصل مع المبدعين." />
+  <meta name="twitter:image" content="<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>" />
+
+  <!-- تحسين الأداء: إضافة DNS Prefetch و Preconnect -->
+  <link rel="dns-prefetch" href="//www.colorizer.com" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+  <!-- تحسين الأمان -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;" />
+  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+
   <style>
-    /* تحسين تصميم الإعلانات */
-    .story-slider {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    /* إخفاء شريط التمرير */
+    ::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+    * {
+      scrollbar-width: none;
+    }
+    body {
+      -ms-overflow-style: none;
+      background-color: #f9fbfc;
+      color: #333;
+      line-height: 1.6;
+      font-size: 0.875rem;
+    }
+
+    .all {
       display: flex;
-      gap: 15px;
-      overflow-x: auto;
-      padding: 15px;
-      background: linear-gradient(135deg, #ffffff, #f8f9fb);
+      justify-content: space-between;
+      padding: 2%;
+      gap: 2%;
+    }
+
+    .left,
+    .right {
+      width: 25%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .left:hover,
+    .right:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .center {
+      width: 50%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .text {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #6B48FF;
+      letter-spacing: 1px;
+      margin-bottom: 30px;
+      text-transform: capitalize;
+      font-weight: bold;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    /* تحسين تصميم فورم النشر */
+    .share {
+      background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      scrollbar-width: thin;
+      padding: 15px;
       margin-bottom: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .share:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .row {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .row img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      border: 2px solid #6B48FF;
+    }
+
+    .row img:hover {
+      transform: scale(1.1);
+    }
+
+    .share textarea {
+      flex: 1;
+      width: 100%;
+      min-width: 300px;
+      height: 60px;
+      padding: 15px 20px;
+      border-radius: 20px;
+      border: 2px solid #DDD6FE;
+      background: #F9F9F9;
+      font-size: 1rem;
+      font-family: 'Cairo', sans-serif;
+      color: #333;
+      resize: vertical;
+      outline: none;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
+    }
+
+    .share textarea:focus {
+      border-color: #6B48FF;
+      box-shadow: 0 0 10px rgba(107, 72, 255, 0.3);
+      height: 160px; /* زيادة الارتفاع عند التركيز */
+    }
+
+    .share textarea::placeholder {
+      color: #999;
+      font-style: italic;
+    }
+
+    .hidden-form {
+      display: none;
+      opacity: 0;
+      background: #f9fbfc;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateY(10px);
+      border: 1px solid #DDD6FE;
+    }
+
+    .hidden-form.active {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 15px;
+      opacity: 1;
+      transform: translateY(0);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0;
+    }
+
+    #image-preview img {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    #image-preview img:hover {
+      transform: scale(1.05);
+    }
+
+    #image-preview .remove-image {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #FF5C5C;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s ease;
+    }
+
+    #image-preview .remove-image:hover {
+      background: #FF8A8A;
+    }
+
+    .share .file-input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .share .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 5px rgba(107, 72, 255, 0.2);
+    }
+
+    .share .file-input-label:hover {
+      background: linear-gradient(135deg, #A78BFA, #6B48FF);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(107, 72, 255, 0.3);
+    }
+
+    .share input[type="file"] {
+      display: none;
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .share-btn,
+    .cancel-btn {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .share-btn {
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
+      color: #FFFFFF;
+    }
+
+    .share-btn:hover {
+      background: linear-gradient(135deg, #A78BFA, #6B48FF);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(107, 72, 255, 0.3);
+    }
+
+    .cancel-btn {
+      background: linear-gradient(135deg, #FF5C5C, #FF8A8A);
+      color: #FFFFFF;
+    }
+
+    .cancel-btn:hover {
+      background: linear-gradient(135deg, #FF8A8A, #FF5C5C);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(255, 92, 92, 0.3);
+    }
+
+    /* قسم الإعلانات */
+    .story-slider {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+      margin-bottom: 20px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
     }
 
     .story-item {
       position: relative;
-      width: 110px;
-      height: 160px;
+      width: 120px;
+      height: 180px;
       border-radius: 12px;
       overflow: hidden;
       cursor: pointer;
-      background: #2c3e50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
       flex-shrink: 0;
-      border: 3px solid transparent;
-      background-clip: padding-box;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .story-item:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .story-item::before {
-      content: "";
-      position: absolute;
-      top: -3px;
-      left: -3px;
-      right: -3px;
-      bottom: -3px;
-      background: linear-gradient(45deg, #3498db, #9b59b6);
-      border-radius: 12px;
-      z-index: -1;
+      box-shadow: 0 6px 20px rgba(107, 72, 255, 0.3);
     }
 
     .story-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.85;
-      border-radius: 12px;
+      opacity: 0.9;
       transition: opacity 0.3s ease;
     }
 
@@ -69,53 +364,51 @@
 
     .story-item .avatar {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      width: 36px;
-      height: 36px;
+      top: 10px;
+      left: 10px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      border: 2px solid #ffffff;
+      border: 2px solid #FFFFFF;
       object-fit: cover;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .story-item .username {
       position: absolute;
-      bottom: 12px;
-      left: 12px;
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 600;
+      bottom: 10px;
+      left: 10px;
+      color: #FFFFFF;
+      font-size: 0.9rem;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
     .story-item.add-story {
-      background: #eef2f6;
-      border: 2px dashed #3498db;
+      background: #F9F9F9;
+      border: 2px dashed #6B48FF;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #3498db;
-      font-size: 26px;
-      cursor: pointer;
       flex-direction: column;
-      gap: 8px;
+      gap: 0.5rem;
+      color: #6B48FF;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
     .story-item.add-story:hover {
-      background: #3498db;
-      color: #ffffff;
+      background: #6B48FF;
+      color: #FFFFFF;
+      border-color: #FFFFFF;
     }
 
-    .story-item.add-story::before {
-      display: none;
+    .story-item.add-story i {
+      font-size: 1.5rem;
     }
 
     .story-item.add-story span {
-      font-size: 14px;
-      font-weight: 500;
-      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
     }
 
     .story-view {
@@ -124,13 +417,13 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.95);
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       visibility: hidden;
       opacity: 0;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.3s ease;
       z-index: 1000;
     }
 
@@ -145,7 +438,7 @@
       left: 20px;
       right: 20px;
       display: flex;
-      gap: 6px;
+      gap: 0.5rem;
     }
 
     .story-view .progress-bar {
@@ -158,7 +451,7 @@
 
     .story-view .progress-bar .progress {
       height: 100%;
-      background: linear-gradient(90deg, #3498db, #9b59b6);
+      background: linear-gradient(90deg, #6B48FF, #A78BFA);
       width: 0%;
       border-radius: 4px;
       transition: width 0.1s linear;
@@ -166,8 +459,8 @@
 
     .story-view .story-content {
       position: relative;
-      max-width: 85%;
-      max-height: 85%;
+      max-width: 90%;
+      max-height: 90%;
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
@@ -176,7 +469,6 @@
     .story-view .story-content img {
       max-width: 100%;
       max-height: 100%;
-      border-radius: 16px;
       object-fit: cover;
     }
 
@@ -185,8 +477,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #ffffff;
-      font-size: 28px;
+      color: #FFFFFF;
+      font-size: 1.5rem;
       font-weight: 700;
       text-align: center;
       text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -194,10 +486,10 @@
 
     .story-view .close-btn {
       position: absolute;
-      top: 25px;
-      right: 25px;
-      color: #ffffff;
-      font-size: 28px;
+      top: 20px;
+      right: 20px;
+      color: #FFFFFF;
+      font-size: 1.5rem;
       cursor: pointer;
       background: rgba(0, 0, 0, 0.5);
       width: 40px;
@@ -217,13 +509,13 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      color: #ffffff;
-      font-size: 28px;
+      color: #FFFFFF;
+      font-size: 2rem;
       cursor: pointer;
       background: rgba(0, 0, 0, 0.5);
       border-radius: 50%;
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -235,25 +527,24 @@
     }
 
     .story-view .nav-btn.prev {
-      left: 25px;
+      left: 20px;
     }
 
     .story-view .nav-btn.next {
-      right: 25px;
+      right: 20px;
     }
 
-    .ad-text {
+    .story-view .ad-text {
       position: absolute;
-      bottom: 25px;
-      left: 25px;
-      right: 25px;
-      color: #ffffff;
-      font-size: 18px;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      color: #FFFFFF;
+      font-size: 1rem;
       text-align: center;
       background: rgba(0, 0, 0, 0.6);
-      padding: 12px 20px;
+      padding: 0.75rem;
       border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     }
 
     .modal {
@@ -268,7 +559,7 @@
       justify-content: center;
       visibility: hidden;
       opacity: 0;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.3s ease;
       z-index: 1000;
     }
 
@@ -278,13 +569,12 @@
     }
 
     .modal-content {
-      background: #ffffff;
-      padding: 25px;
+      background: #FFFFFF;
+      padding: 2rem;
       border-radius: 16px;
       width: 90%;
-      max-width: 450px;
-      text-align: center;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
       position: relative;
       transform: scale(0.95);
       transition: transform 0.3s ease;
@@ -296,43 +586,73 @@
 
     .modal-content .close-modal {
       position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 24px;
-      color: #3498db;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      color: #6B48FF;
       cursor: pointer;
-      border: none;
       background: none;
+      border: none;
       transition: color 0.3s ease;
     }
 
     .modal-content .close-modal:hover {
-      color: #e74c3c;
+      color: #FF5C5C;
     }
 
     .modal-content h3 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      color: #2c3e50;
-      font-weight: 600;
+      font-size: 1.5rem;
+      color: #6B48FF;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .modal-content .file-input {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content .file-input input[type="file"] {
+      display: none;
+    }
+
+    .modal-content .file-input label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+      text-align: center;
+    }
+
+    .modal-content .file-input label:hover {
+      background: linear-gradient(135deg, #A78BFA, #6B48FF);
+      transform: translateY(-2px);
     }
 
     .modal-content input,
     .modal-content textarea {
       width: 100%;
-      padding: 12px 16px;
-      margin: 12px 0;
-      border: 1px solid #dfe6e9;
-      border-radius: 8px;
-      font-size: 16px;
-      background: #f8f9fb;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0 1rem;
+      border: 2px solid #DDD6FE;
+      border-radius: 12px;
+      font-size: 1rem;
+      background: #F9F9F9;
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .modal-content input:focus,
     .modal-content textarea:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+      border-color: #6B48FF;
+      box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
       outline: none;
     }
 
@@ -341,182 +661,25 @@
       min-height: 120px;
     }
 
-    .modal-content button {
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      color: #ffffff;
+    .modal-content button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
+      color: #FFFFFF;
       border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: 700;
       cursor: pointer;
-      font-size: 16px;
-      font-weight: 500;
       transition: background 0.3s ease, transform 0.3s ease;
     }
 
-    .modal-content button:hover {
-      background: linear-gradient(135deg, #2980b9, #1a5276);
+    .modal-content button[type="submit"]:hover {
+      background: linear-gradient(135deg, #A78BFA, #6B48FF);
       transform: translateY(-2px);
     }
 
-    .modal-content .file-input {
-      position: relative;
-      overflow: hidden;
-      margin: 12px 0;
-    }
-
-    .modal-content .file-input input[type="file"] {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .modal-content .file-input label {
-      display: block;
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      color: #ffffff;
-      padding: 12px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 500;
-      transition: background 0.3s ease;
-    }
-
-    .modal-content .file-input label:hover {
-      background: linear-gradient(135deg, #2980b9, #1a5276);
-    }
-  </style>
-  <style>
-     /* تحسين تصميم النشر */
-  .share {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    margin-bottom: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .share:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
-  }
-
-  .row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .row img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-
-  .row img:hover {
-    transform: scale(1.1);
-  }
-
-  .share input[type="text"] {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1px solid #dfe6e9;
-    border-radius: 8px;
-    background: #f8f9fb;
-    font-size: 15px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .share input[type="text"]:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
-  }
-
-  .hidden-form {
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    margin-top: 15px;
-  }
-
-  .hidden-form.active {
-    display: flex;
-    flex-direction: column;
-    opacity: 1;
-  }
-
-  #image-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  #image-preview img {
-    width: 80px;
-    height: 80px;
-    border-radius: 10px;
-    object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-
-  #image-preview img:hover {
-    transform: scale(1.05);
-  }
-
-  .share .file-input-label {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: #ffffff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background 0.3s ease;
-  }
-
-  .share .file-input-label:hover {
-    background: linear-gradient(135deg, #2980b9, #1a5276);
-  }
-
-  .share-btn,
-  .cancel-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-    margin-top: 10px;
-  }
-
-  .share-btn {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: #ffffff;
-  }
-
-  .share-btn:hover {
-    background: linear-gradient(135deg, #2980b9, #1a5276);
-    transform: translateY(-2px);
-  }
-
-  .cancel-btn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: #ffffff;
-  }
-
-  .cancel-btn:hover {
-    background: linear-gradient(135deg, #c0392b, #992d22);
-    transform: translateY(-2px);
-  }
+    /* باقي التصميمات */
     .post {
       background: #ffffff;
       border-radius: 12px;
@@ -546,14 +709,14 @@
     .action-btn {
       background: none;
       border: none;
-      color: #3498db;
+      color: #6B48FF;
       font-size: 18px;
       cursor: pointer;
       transition: color 0.3s ease, transform 0.3s ease;
     }
 
     .action-btn:hover {
-      color: #2980b9;
+      color: #A78BFA;
       transform: scale(1.2);
     }
 
@@ -573,6 +736,7 @@
     .post-user-info .post-user-name {
       font-size: 16px;
       font-weight: 600;
+      color: #333;
     }
 
     .post-time {
@@ -584,6 +748,7 @@
       font-size: 15px;
       color: #2c3e50;
       line-height: 1.5;
+      text-align: right;
     }
 
     .post-images {
@@ -591,6 +756,7 @@
       flex-wrap: wrap;
       gap: 10px;
       margin: 15px 0;
+      justify-content: center;
     }
 
     .post-image {
@@ -614,7 +780,7 @@
     .post-footer button {
       background: none;
       border: none;
-      color: #3498db;
+      color: #6B48FF;
       font-size: 14px;
       display: flex;
       align-items: center;
@@ -624,7 +790,7 @@
     }
 
     .post-footer button:hover {
-      color: #2980b9;
+      color: #A78BFA;
       transform: translateY(-2px);
     }
 
@@ -640,8 +806,8 @@
     .comment-form .rowcomment {
       display: flex;
       align-items: center;
-      background: #f8f9fb;
-      border-radius: 8px;
+      background: #F9F9F9;
+      border-radius: 25px;
       overflow: hidden;
     }
 
@@ -654,16 +820,16 @@
     }
 
     .comment-form button {
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      color: #ffffff;
+      background: linear-gradient(135deg, #6B48FF, #A78BFA);
+      color: #FFFFFF;
       padding: 10px 15px;
       border: none;
-      border-radius: 0 8px 8px 0;
+      border-radius: 0 25px 25px 0;
       transition: background 0.3s ease;
     }
 
     .comment-form button:hover {
-      background: linear-gradient(135deg, #2980b9, #1a5276);
+      background: linear-gradient(135deg, #A78BFA, #6B48FF);
     }
 
     .comments-list {
@@ -677,7 +843,7 @@
       align-items: center;
       gap: 10px;
       padding: 10px;
-      background: #f8f9fb;
+      background: #F9F9F9;
       border-radius: 8px;
       margin-bottom: 8px;
     }
@@ -694,158 +860,90 @@
       color: #2c3e50;
     }
 
-    /* تخصيص Scrollbar لقسم الوظائف كنقطة صغيرة */
-    .left {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin: 20px;
-      overflow-y: auto; /* تفعيل التمرير العمودي */
+    @media screen and (max-width: 768px) {
+      .left, .right {
+        display: none;
+      }
+      .center {
+        width: 100%;
+      }
+      .share textarea {
+        min-width: 100%;
+      }
+      .hidden-form.active {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
 
-    .left::-webkit-scrollbar {
-      width: 10px; /* عرض صغير للنقطة */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      padding: 10px 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-around;
     }
 
-    .left::-webkit-scrollbar-track {
-      background: transparent; /* خلفية شفافة */
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #7a7a7a;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.3s ease;
     }
 
-    .left::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #3498db, #2980b9); /* تدرج لوني */
-      border-radius: 50%; /* شكل دائري للنقطة */
-      width: 8px; /* حجم النقطة */
-      height: 8px; /* حجم النقطة */
-      border: 2px solid transparent; /* حد شفاف */
-      background-clip: padding-box; /* لضمان التدرج داخل الحد */
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* ظل خفيف */
-      opacity: 0.7; /* شبه مخفي */
-      transition: opacity 0.3s ease, transform 0.3s ease;
+    .nav-item i {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
     }
 
-    .left::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #2980b9, #1a5276);
-      opacity: 1; /* يظهر بالكامل عند التحويم */
-      transform: scale(1.2); /* تضخيم طفيف */
+    .nav-item:hover {
+      color: #6B48FF;
     }
 
-    /* دعم Firefox لقسم الوظائف */
-    .left {
-      scrollbar-width: thin;
-      scrollbar-color: #3498db transparent; /* لون النقطة مع خلفية شفافة */
+    @media (max-width: 768px) {
+      .mobile-nav {
+        display: flex;
+      }
     }
 
-    .left-header h2 { 
-      font-size: 20px; 
-      margin-bottom: 15px; 
-      color: #2c3e50; 
-      font-weight: 600; 
-      text-align: center; 
-    }
-
-    .job-list { 
-      list-style: none; 
-      padding: 0; 
-      margin: 0; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 12px; 
-    }
-
-    .job-item { 
-      display: flex; 
-      align-items: center; 
-      padding: 12px; 
-      background: #f8f9fb; 
-      border-radius: 10px; 
-      transition: background 0.3s ease, transform 0.3s ease; 
-      cursor: pointer; 
-    }
-
-    .job-item:hover { 
-      background: #eef2f6; 
-      transform: translateY(-2px); 
-    }
-
-    .job-icon { 
-      font-size: 28px; 
-      color: #3498db; 
-      margin-right: 15px; 
-    }
-
-    .job-info { 
-      text-align: right; 
-      flex: 1; 
-    }
-
-    .job-title { 
-      font-size: 16px; 
-      font-weight: 600; 
-      color: #2c3e50; 
-    }
-
-    .job-location { 
-      font-size: 13px; 
-      color: #7f8c8d; 
-      margin: 4px 0; 
-      display: flex; 
-      align-items: center; 
-      justify-content: flex-end; 
-    }
-
-    .job-location i { 
-      margin-left: 5px; 
-    }
-
-    .job-description { 
-      font-size: 14px; 
-      color: #636e72; 
-    }
-
-    .no-jobs { 
-      text-align: center; 
-      font-size: 16px; 
-      color: #636e72; 
-      padding: 15px; 
-      background: #f8f9fb; 
-      border-radius: 10px; 
+    @media (min-width: 769px) {
+      .mobile-nav {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <%- include('partials/headerhome') %> 
+  <%- include('partials/headerhome') %>
   <%- include('partials/headeraction') %>
-
+  
   <nav class="mobile-nav">
     <div class="nav-item" data-link="/jobs"><i class="fas fa-briefcase"></i><span>الوظائف</span></div>
     <div class="nav-item" data-link="/projects"><i class="fas fa-cogs"></i><span>المشاريع</span></div>
     <div class="nav-item" data-link="/forum"><i class="fas fa-blog"></i><span>المشاركات</span></div>
   </nav>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const navItems = document.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.addEventListener('click', () => {
-          const link = item.getAttribute('data-link');
-          if (link) window.location.href = link;
-        });
-      });
-    });
-  </script>
-
+  
   <div class="all">
     <div class="right">
       <div class="right-header">
-        <a href="/ProjectSpace" style="text-decoration:none; color:inherit;">
+        <a href="/ProjectSpace" style="text-decoration:none; color:inherit;" aria-label="عرض المشاريع">
           <h2 style="cursor:pointer; text-align:center;">المشاريع</h2>
         </a>
       </div>
       <ul class="project-list">
         <% if (projects && projects.length > 0) { %>
           <% projects.forEach(function(project) { %>
-            <li class="project-item" onclick="window.location.href='/project/<%= project.id %>'">
-              <div class="project-icon"><img src="\icons\project-plan.png" alt="icon" style="width: 40px;height: 40px;"></div>
+            <li class="project-item" onclick="window.location.href='/projects/project/<%= project.id %>'">
+              <div class="project-icon"><img src="/icons/project-plan.png" alt="أيقونة المشروع" style="width: 40px;height: 40px;" loading="lazy"></div>
               <div class="project-info">
                 <span class="project-title"><%= project.title %></span>
                 <span class="project-duration"><i class="fas fa-clock"></i> المدة: <%= project.duration %> يوم</span>
@@ -862,39 +960,42 @@
         .project-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px; }
         .project-item { display: flex; align-items: center; padding: 15px; background: #e8f0fe; border-radius: 8px; transition: 0.3s; cursor: pointer; }
         .project-item:hover { background: #d0e2fd; transform: translateY(-2px); }
-        .project-icon { font-size: 28px; color: #007bff; margin-right: 15px; }
+        .project-icon { font-size: 28px; color: #6B48FF; margin-right: 15px; }
         .project-info { text-align: right; flex: 1; }
         .project-title { font-size: 16px; font-weight: bold; color: #333; }
         .project-duration, .project-description { font-size: 14px; color: #555; margin-bottom: 5px; }
         .no-projects { text-align: center; font-size: 18px; color: #555; padding: 15px; background: #f4f4f9; border-radius: 8px; }
       </style>
     </div>
-
+  
     <div class="center">
       <section>
         <div class="share">
-          <form action="/forum/post" method="POST" enctype="multipart/form-data">
+          <form id="postForm" enctype="multipart/form-data">
             <div class="row">
-              <input type="text" name="content" placeholder="اكتب محتوى المنشور هنا..." required />
+              <textarea name="content" placeholder="اكتب محتوى المنشور هنا..." required></textarea>
               <a href="/profile?userId=<%= currentUserId %>">
                 <img src="<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>" 
-                     alt="User Avatar" 
-                     style="width: 50px; border-radius: 50%;" />
+                     alt="صورة المستخدم" loading="lazy" />
               </a>
             </div>
             <div class="hidden-form" id="hidden-form">
               <div id="image-preview"></div>
-              <label for="postImages" class="file-input-label">
-                <i class="fas fa-cloud-upload-alt"></i> رفع صورة
-              </label>
-              <input type="file" id="postImages" name="postImages" accept="image/*" multiple style="display: none;" />
-              <button type="button" class="cancel-btn">إلغاء</button>
-              <button type="submit" class="share-btn">نشر</button>
+              <div class="file-input-container">
+                <label for="postImages" class="file-input-label">
+                  <i class="fas fa-cloud-upload-alt"></i> رفع صورة
+                </label>
+                <input type="file" id="postImages" name="postImages" accept="image/*" multiple />
+              </div>
+              <div class="share-buttons">
+                <button type="button" class="cancel-btn" id="cancelPost" aria-label="إلغاء النشر">إلغاء</button>
+                <button type="submit" class="share-btn" aria-label="نشر المنشور">نشر</button>
+              </div>
             </div>
           </form>
-          <script src="/js/forum.js"></script>
         </div>
-
+  
+        <!-- قسم الإعلانات -->
         <div class="story-slider" id="storySlider">
           <div class="story-item add-story" id="addStory">
             <i class="fas fa-plus"></i>
@@ -904,21 +1005,21 @@
             <% ads.forEach(ad => { %>
               <div class="story-item" data-id="<%= ad.id %>" data-title="<%= ad.title %>" data-description="<%= ad.description %>" data-image="/uploads/ads/<%= ad.image %>">
                 <% if (ad.image) { %>
-                  <img src="/uploads/ads/<%= ad.image %>" alt="<%= ad.title %>">
+                  <img src="/uploads/ads/<%= ad.image %>" alt="<%= ad.title %>" loading="lazy">
                 <% } %>
                 <img src="<%= ad.user_avatar ? (ad.user_avatar.includes('/uploads/avatars/') ? ad.user_avatar : '/uploads/avatars/' + ad.user_avatar) : '/uploads/images/pngwing.com.png' %>" 
                      class="avatar" 
-                     alt="<%= ad.user_name %>">
+                     alt="صورة <%= ad.user_name %>" loading="lazy">
                 <span class="username"><%= ad.user_name %></span>
               </div>
             <% }); %>
           <% } %>
         </div>
-
+  
         <div class="story-view" id="storyView">
           <div class="progress-container" id="progressContainer"></div>
           <div class="story-content">
-            <img id="storyImage" src="" alt="الإعلان">
+            <img id="storyImage" src="" alt="الإعلان" loading="lazy">
             <div id="storyText" class="text"></div>
             <div id="adText" class="ad-text"></div>
           </div>
@@ -926,7 +1027,7 @@
           <div class="nav-btn prev" id="prevBtn">‹</div>
           <div class="nav-btn next" id="nextBtn">›</div>
         </div>
-
+  
         <div class="modal" id="addStoryModal">
           <div class="modal-content">
             <button class="close-modal" id="closeModalBtn">✕</button>
@@ -934,7 +1035,7 @@
             <form id="addAdForm" enctype="multipart/form-data">
               <div class="file-input">
                 <input type="file" id="storyImageInput" name="image" accept="image/*">
-                <label for="storyImageInput">اختر صورة</label>
+                <label for="storyImageInput"><i class="fas fa-cloud-upload-alt"></i> اختر صورة</label>
               </div>
               <input type="text" id="storyTitle" name="title" placeholder="عنوان الإعلان" required>
               <textarea id="storyDescription" name="description" placeholder="وصف الإعلان"></textarea>
@@ -942,128 +1043,120 @@
             </form>
           </div>
         </div>
-
-        <% if (posts && posts.length > 0) { %>
-          <% posts.forEach((post) => { %>
-            <div class="post">
-              <div class="post-header">
-                <div class="post-actions">
-                  <% console.log('Post:', post); %>
-                  <% console.log('Current User ID:', currentUserId); %>
-                  <% console.log('Show Edit/Delete Buttons:', post.showEditDeleteButtons); %>
-                  <% if (currentUserId && post.showEditDeleteButtons) { %>
-                    <form action="/forum/post/<%= post.id %>/delete" method="POST">
-                      <button type="submit" class="action-btn"><i class="fas fa-trash-alt"></i></button>
-                    </form>
-                    <form action="/forum/post/<%= post.id %>/edit" method="GET">
-                      <button type="submit" class="action-btn"><i class="fas fa-edit"></i></button>
-                    </form>
-                  <% } %>
-                  <form action="/forum/post/<%= post.id %>/hide" method="POST">
-                    <button type="submit" class="action-btn"><i class="fas fa-eye-slash"></i></button>
-                  </form>
-                </div>
-                <div class="person">
-                  <div class="post-avatar">
-                    <a href="/profile?userId=<%= post.user_id %>">
-                      <img src="<%= post.user_avatar ? (post.user_avatar.includes('/uploads/avatars/') ? post.user_avatar : '/uploads/avatars/' + post.user_avatar) : '/uploads/images/pngwing.com.png' %>" 
-                           alt="<%= post.user_name %>" 
-                           width="50" 
-                           style="border-radius: 50%;" />
-                    </a>
-                  </div>
-                  <div class="post-user-info">
-                    <p class="post-user-name">
-                      <a href="/profile?userId=<%= post.user_id %>" style="text-decoration: none; color: inherit;">
-                        <%= post.user_name %>
-                      </a>
-                    </p>
-                  </div>
-                  <div class="time">
-                    <span class="post-time">
-                      <%= new Date(post.created_at).toLocaleString('ar-EG', { hour12: true }) %>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="post-content">
-                <p style="text-align: center;"><%= post.content %></p>
-              </div>
-
-              <div class="post-images" style="display: flex; justify-content: center; align-items: center;">
-                <% if (post.image1 || post.image2 || post.image3 || post.image4) { %>
-                  <% [post.image1, post.image2, post.image3, post.image4].forEach((image) => { %>
-                    <% if (image) { %>
-                      <img src="/uploads/images/<%= image %>" alt="Post Image" class="post-image" />
+  
+        <div class="post-section">
+          <% if (posts && posts.length > 0) { %>
+            <% posts.forEach((post) => { %>
+              <div class="post">
+                <div class="post-header">
+                  <div class="post-actions">
+                    <% if (currentUserId && post.showEditDeleteButtons) { %>
+                      <form action="/forum/post/<%= post.id %>/delete" method="POST">
+                        <button type="submit" class="action-btn" aria-label="حذف المنشور"><i class="fas fa-trash-alt"></i></button>
+                      </form>
+                      <form action="/forum/post/<%= post.id %>/edit" method="GET">
+                        <button type="submit" class="action-btn" aria-label="تعديل المنشور"><i class="fas fa-edit"></i></button>
+                      </form>
                     <% } %>
-                  <% }); %>
-                <% } else { %>
-                  <p>لا توجد صور في هذا المنشور.</p>
-                <% } %>
-              </div>
-
-              <div class="post-footer">
-                <button class="like-button" data-post-id="<%= post.id %>" data-liked="<%= post.liked ? 'true' : 'false' %>">
-                  <i class="fas fa-thumbs-up"></i><span class="like-count"><%= post.like_count || 0 %></span>
-                </button>
-                <button type="button" class="show-comments-btn" data-post-id="<%= post.id %>">
-                  <i class="fas fa-comment"></i> تعليق
-                  <span id="comment-count-<%= post.id %>" class="count">
-                    <%= post.comment_count > 0 ? post.comment_count : 'لا تعليقات حتى الآن' %>
-                  </span>
-                </button>
-                <form action="/forum/post/<%= post.id %>/share" method="POST">
-                  <button type="submit"><i class="fas fa-share"></i><span class="count"><%= post.share_count || 0 %></span></button>
-                </form>
-              </div>
-
-              <div class="comments-section" id="comments-<%= post.id %>">
-                <form class="comment-form" data-post-id="<%= post.id %>" style="display: none;">
-                  <div class="rowcomment">
-                    <input type="text" name="comment" placeholder="اكتب تعليقاً..." required />
-                    <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    <form action="/forum/post/<%= post.id %>/hide" method="POST">
+                      <button type="submit" class="action-btn" aria-label="إخفاء المنشور"><i class="fas fa-eye-slash"></i></button>
+                    </form>
                   </div>
-                </form>
-                <div class="comments-list" id="comments-list-<%= post.id %>">
-                  <% if (post.comments && post.comments.length > 0) { %>
-                    <% post.comments.forEach(comment => { %>
-                      <div class="comment">
-                        <a href="/profile?userId=<%= comment.user_id %>">
-                          <img src="<%= comment.user_avatar ? (comment.user_avatar.includes('/uploads/avatars/') ? comment.user_avatar : '/uploads/avatars/' + comment.user_avatar) : '/uploads/images/pngwing.com.png' %>" 
-                               alt="<%= comment.user_name %>" 
-                               class="comment-avatar" 
-                               style="width: 50px; border-radius: 50%;" />
+                  <div class="person">
+                    <div class="post-avatar">
+                      <a href="/profile?userId=<%= post.user_id %>">
+                        <img src="<%= post.user_avatar ? (post.user_avatar.includes('/uploads/avatars/') ? post.user_avatar : '/uploads/avatars/' + post.user_avatar) : '/uploads/images/pngwing.com.png' %>" 
+                             alt="صورة <%= post.user_name %>" loading="lazy" />
+                      </a>
+                    </div>
+                    <div class="post-user-info">
+                      <p class="post-user-name">
+                        <a href="/profile?userId=<%= post.user_id %>" style="text-decoration: none; color: inherit;">
+                          <%= post.user_name %>
                         </a>
-                        <p>
-                          <a href="/profile?userId=<%= comment.user_id %>" style="text-decoration: none; color: inherit;">
-                            <strong><%= comment.user_name %></strong>
-                          </a>: <%= comment.content %>
-                        </p>
-                      </div>
+                      </p>
+                      <span class="post-time">
+                        <%= new Date(post.created_at).toLocaleString('ar-EG', { hour12: true }) %>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+  
+                <div class="post-content">
+                  <p><%= post.content %></p>
+                </div>
+  
+                <div class="post-images">
+                  <% if (post.image1 || post.image2 || post.image3 || post.image4) { %>
+                    <% [post.image1, post.image2, post.image3, post.image4].forEach((image) => { %>
+                      <% if (image) { %>
+                        <img src="/uploads/images/<%= image %>" alt="صورة المنشور" class="post-image" loading="lazy" width="350" height="350" />
+                      <% } %>
                     <% }); %>
                   <% } %>
                 </div>
+  
+                <div class="post-footer">
+                  <button class="like-button" data-post-id="<%= post.id %>" data-liked="<%= post.liked ? 'true' : 'false' %>">
+                    <i class="fas fa-thumbs-up"></i><span class="like-count"><%= post.like_count || 0 %></span>
+                  </button>
+                  <button type="button" class="show-comments-btn" data-post-id="<%= post.id %>">
+                    <i class="fas fa-comment"></i> تعليق
+                    <span id="comment-count-<%= post.id %>" class="count">
+                      <%= post.comment_count > 0 ? post.comment_count : 'لا تعليقات' %>
+                    </span>
+                  </button>
+                  <form action="/forum/post/<%= post.id %>/share" method="POST">
+                    <button type="submit"><i class="fas fa-share"></i><span class="count"><%= post.share_count || 0 %></span></button>
+                  </form>
+                </div>
+  
+                <div class="comments-section" id="comments-<%= post.id %>">
+                  <form class="comment-form" data-post-id="<%= post.id %>" style="display: none;">
+                    <div class="rowcomment">
+                      <input type="text" name="content" placeholder="اكتب تعليقاً..." required />
+                      <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                  </form>
+                  <div class="comments-list" id="comments-list-<%= post.id %>">
+                    <% if (post.comments && post.comments.length > 0) { %>
+                      <% post.comments.forEach(comment => { %>
+                        <div class="comment">
+                          <a href="/profile?userId=<%= comment.user_id %>">
+                            <img src="<%= comment.user_avatar ? (comment.user_avatar.includes('/uploads/avatars/') ? comment.user_avatar : '/uploads/avatars/' + comment.user_avatar) : '/uploads/images/pngwing.com.png' %>" 
+                                 alt="صورة <%= comment.user_name %>" 
+                                 class="comment-avatar" loading="lazy" />
+                          </a>
+                          <p>
+                            <a href="/profile?userId=<%= comment.user_id %>" style="text-decoration: none; color: inherit;">
+                              <strong><%= comment.user_name %></strong>
+                            </a>: <%= comment.content %>
+                          </p>
+                        </div>
+                      <% }); %>
+                    <% } %>
+                  </div>
+                </div>
               </div>
-            </div>
-          <% }); %>
-        <% } else { %>
-          <p>لا توجد منشورات متاحة.</p>
-        <% } %>
+            <% }); %>
+          <% } else { %>
+            <p class="text">لا توجد منشورات متاحة.</p>
+          <% } %>
+        </div>
       </section>
     </div>
-
+  
     <div class="left">
       <div class="left-header">
-        <a href="/jobs" style="text-decoration:none; color:inherit;">
-          <h2 style="cursor:pointer;">الوظائف</h2>
+        <a href="/jobs" style="text-decoration:none; color:inherit;" aria-label="عرض الوظائف">
+          <h2 style="cursor:pointer; text-align: center;">الوظائف</h2>
         </a>
       </div>
       <ul class="job-list">
         <% if (jobs && jobs.length > 0) { %>
           <% jobs.forEach(function(job) { %>
             <li class="job-item" onclick="window.location.href='/job/<%= job.job_id %>'">
-              <div class="job-icon"><img src="\icons\portfolio.png" alt="icon" style="width: 40px;height: 40px;"></div>
+              <div class="job-icon"><img src="/icons/portfolio.png" alt="أيقونة الوظيفة" style="width: 40px;height: 40px;" loading="lazy"></div>
               <div class="job-info">
                 <span class="job-title"><%= job.title %></span>
                 <span class="job-location"><i class="fas fa-map-marker-alt"></i> <%= job.location %></span>
@@ -1076,144 +1169,247 @@
         <% } %>
       </ul>
       <style>
-        .left { 
-          background: #fff; 
-          border-radius: 12px; 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-          padding: 20px; 
-          margin: 20px; 
-          overflow-y: auto; 
-        }
-
-        /* تخصيص Scrollbar لقسم الوظائف كنقطة صغيرة */
-        .left::-webkit-scrollbar {
-          width: 10px; /* عرض صغير للنقطة */
-        }
-
-        .left::-webkit-scrollbar-track {
-          background: transparent; /* خلفية شفافة */
-        }
-
-        .left::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #3498db, #2980b9); /* تدرج لوني */
-          border-radius: 50%; /* شكل دائري للنقطة */
-          width: 8px; /* حجم النقطة */
-          height: 8px; /* حجم النقطة */
-          border: 2px solid transparent; /* حد شفاف */
-          background-clip: padding-box; /* لضمان التدرج داخل الحد */
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* ظل خفيف */
-          opacity: 0.7; /* شبه مخفي */
-          transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .left::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #2980b9, #1a5276);
-          opacity: 1; /* يظهر بالكامل عند التحويم */
-          transform: scale(1.2); /* تضخيم طفيف */
-        }
-
-        /* دعم Firefox لقسم الوظائف */
-        .left {
-          scrollbar-width: thin;
-          scrollbar-color: #3498db transparent; /* لون النقطة مع خلفية شفافة */
-        }
-
-        .left-header h2 { 
-          font-size: 20px; 
-          margin-bottom: 15px; 
-          color: #2c3e50; 
-          font-weight: 600; 
-          text-align: center; 
-        }
-
-        .job-list { 
-          list-style: none; 
-          padding: 0; 
-          margin: 0; 
-          display: flex; 
-          flex-direction: column; 
-          gap: 12px; 
-        }
-
-        .job-item { 
-          display: flex; 
-          align-items: center; 
-          padding: 12px; 
-          background: #f8f9fb; 
-          border-radius: 10px; 
-          transition: background 0.3s ease, transform 0.3s ease; 
-          cursor: pointer; 
-        }
-
-        .job-item:hover { 
-          background: #eef2f6; 
-          transform: translateY(-2px); 
-        }
-
-        .job-icon { 
-          font-size: 28px; 
-          color: #3498db; 
-          margin-right: 15px; 
-        }
-
-        .job-info { 
-          text-align: right; 
-          flex: 1; 
-        }
-
-        .job-title { 
-          font-size: 16px; 
-          font-weight: 600; 
-          color: #2c3e50; 
-        }
-
-        .job-location { 
-          font-size: 13px; 
-          color: #7f8c8d; 
-          margin: 4px 0; 
-          display: flex; 
-          align-items: center; 
-          justify-content: flex-end; 
-        }
-
-        .job-location i { 
-          margin-left: 5px; 
-        }
-
-        .job-description { 
-          font-size: 14px; 
-          color: #636e72; 
-        }
-
-        .no-jobs { 
-          text-align: center; 
-          font-size: 16px; 
-          color: #636e72; 
-          padding: 15px; 
-          background: #f8f9fb; 
-          border-radius: 10px; 
-        }
+        .left-header h2 { font-size: 18px; margin-bottom: 15px; color: #333; }
+        .job-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px; }
+        .job-item { display: flex; align-items: center; padding: 15px; background: #e8f0fe; border-radius: 8px; transition: 0.3s; cursor: pointer; }
+        .job-item:hover { background: #d0e2fd; transform: translateY(-2px); }
+        .job-icon { font-size: 28px; color: #6B48FF; margin-right: 15px; }
+        .job-info { text-align: right; flex: 1; }
+        .job-title { font-size: 16px; font-weight: bold; color: #333; }
+        .job-location, .job-description { font-size: 14px; color: #555; margin-bottom: 5px; }
+        .no-jobs { text-align: center; font-size: 18px; color: #555; padding: 15px; background: #f4f4f9; border-radius: 8px; }
       </style>
     </div>
-
-    <script>
-      // تعريف المتغيرات من EJS إلى JavaScript
-      const currentUserAvatar = "<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>";
-      const currentUserName = "<%= currentUserName || 'User' %>";
-
+  </div>
+  
+  <script>
+    const currentUserAvatar = "<%= currentUserAvatar ? (currentUserAvatar.includes('/uploads/avatars/') ? currentUserAvatar : '/uploads/avatars/' + currentUserAvatar) : '/uploads/images/pngwing.com.png' %>";
+    const currentUserName = "<%= currentUserName || 'User' %>";
+  
+    document.addEventListener("DOMContentLoaded", () => {
+      const textarea = document.querySelector('.share textarea');
+      const hiddenForm = document.getElementById('hidden-form');
+      const cancelPostBtn = document.getElementById('cancelPost');
+      const postImagesInput = document.getElementById('postImages');
+      const imagePreview = document.getElementById('image-preview');
+      const postForm = document.getElementById('postForm');
+      const addAdForm = document.getElementById('addAdForm');
+  
+      // إظهار النموذج المخفي عند النقر على textarea
+      textarea.addEventListener('click', () => {
+        hiddenForm.classList.add('active');
+      });
+  
+      // إخفاء النموذج عند النقر على إلغاء
+      cancelPostBtn.addEventListener('click', () => {
+        textarea.value = '';
+        hiddenForm.classList.remove('active');
+        imagePreview.innerHTML = '';
+        postImagesInput.value = '';
+      });
+  
+      // معاينة الصور المرفوعة
+      postImagesInput.addEventListener('change', () => {
+        imagePreview.innerHTML = '';
+        const files = postImagesInput.files;
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imgContainer = document.createElement('div');
+            imgContainer.style.position = 'relative';
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image';
+            removeBtn.innerHTML = '×';
+            removeBtn.addEventListener('click', () => {
+              imgContainer.remove();
+              postImagesInput.value = ''; // إعادة تعيين الإدخال
+            });
+            imgContainer.appendChild(img);
+            imgContainer.appendChild(removeBtn);
+            imagePreview.appendChild(imgContainer);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+  
+      // إضافة منشور مع SweetAlert2
+      postForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(postForm);
+  
+        try {
+          const response = await fetch('/forum/post', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+            cache: 'no-store' // تحسين الأداء: منع التخزين المؤقت
+          });
+          const result = await response.json();
+  
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'تم!',
+              text: result.message,
+              confirmButtonText: 'موافق',
+              confirmButtonColor: '#6B48FF',
+            }).then(() => {
+              location.reload(); // إعادة تحميل الصفحة لعرض المنشور الجديد
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'خطأ',
+              text: result.message,
+              confirmButtonText: 'موافق',
+              confirmButtonColor: '#FF5C5C',
+            });
+          }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'خطأ',
+            text: 'حدث خطأ غير متوقع!',
+            confirmButtonText: 'موافق',
+            confirmButtonColor: '#FF5C5C',
+          });
+        }
+      });
+  
+      // إضافة تعليق مع SweetAlert2
+      document.querySelectorAll(".comment-form").forEach((form) => {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const postId = form.getAttribute("data-post-id");
+          const commentContent = form.querySelector("input[name='content']").value.trim();
+          if (!commentContent) return;
+  
+          try {
+            const response = await fetch(`/forum/comments/${postId}/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+              credentials: 'include',
+              body: JSON.stringify({ content: commentContent }),
+            });
+            const result = await response.json();
+  
+            if (result.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'تم!',
+                text: 'تم إضافة التعليق بنجاح!',
+                confirmButtonText: 'موافق',
+                confirmButtonColor: '#6B48FF',
+              });
+              form.querySelector("input[name='content']").value = "";
+              await loadComments(postId);
+              const commentCountElement = document.getElementById(`comment-count-${postId}`);
+              commentCountElement.textContent = parseInt(commentCountElement.textContent) + 1 || 1;
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: result.message,
+                confirmButtonText: 'موافق',
+                confirmButtonColor: '#FF5C5C',
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              icon: 'error',
+              title: 'خطأ',
+              text: 'حدث خطأ غير متوقع!',
+              confirmButtonText: 'موافق',
+              confirmButtonColor: '#FF5C5C',
+            });
+          }
+        });
+      });
+  
+      // إضافة إعلان مع SweetAlert2
+      addAdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(addAdForm);
+  
+        try {
+          const response = await fetch('/forum/ad', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+            cache: 'no-store' // تحسين الأداء: منع التخزين المؤقت
+          });
+          const result = await response.json();
+  
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'تم!',
+              text: result.message,
+              confirmButtonText: 'موافق',
+              confirmButtonColor: '#6B48FF',
+            }).then(() => {
+              const newAd = document.createElement('div');
+              newAd.classList.add('story-item');
+              newAd.dataset.id = result.adId;
+              newAd.dataset.title = formData.get('title');
+              newAd.dataset.description = formData.get('description');
+  
+              if (result.filename) {
+                const imageUrl = `/uploads/ads/${result.filename}`;
+                newAd.dataset.image = imageUrl;
+                newAd.innerHTML = `
+                  <img src="${imageUrl}" alt="${formData.get('title')}" loading="lazy">
+                  <img src="${currentUserAvatar}" class="avatar" alt="${currentUserName}" loading="lazy">
+                  <span class="username">${currentUserName}</span>
+                `;
+              } else {
+                newAd.innerHTML = `
+                  <img src="${currentUserAvatar}" class="avatar" alt="${currentUserName}" loading="lazy">
+                  <span class="username">${currentUserName}</span>
+                `;
+              }
+  
+              storySlider.insertBefore(newAd, addStoryBtn.nextSibling);
+              stories = Array.from(document.querySelectorAll('.story-item:not(.add-story)'));
+              addStoryModal.classList.remove('show');
+              addAdForm.reset();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'خطأ',
+              text: result.message,
+              confirmButtonText: 'موافق',
+              confirmButtonColor: '#FF5C5C',
+            });
+          }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'خطأ',
+            text: 'حدث خطأ غير متوقع!',
+            confirmButtonText: 'موافق',
+            confirmButtonColor: '#FF5C5C',
+          });
+        }
+      });
+  
+      // منطق زر الإعجاب
       document.querySelectorAll('.like-button').forEach(button => {
         button.addEventListener('click', async function() {
           const postId = this.getAttribute('data-post-id');
           const liked = this.getAttribute('data-liked') === 'true';
-
+  
           try {
             const response = await fetch(`/forum/toggle-like/${postId}`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', "Cache-Control": "no-store" },
               credentials: 'include',
               body: JSON.stringify({ liked: !liked }),
             });
-
+  
             const data = await response.json();
             if (data.success) {
               this.querySelector('.like-count').textContent = data.likeCount;
@@ -1227,253 +1423,175 @@
           }
         });
       });
-
-      document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".show-comments-btn").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const postId = btn.getAttribute("data-post-id");
-            const commentsSection = document.getElementById(`comments-${postId}`);
-            const commentsList = commentsSection.querySelector(".comments-list");
-            const commentForm = commentsSection.querySelector(".comment-form");
-
-            commentsSection.classList.toggle("active");
-
-            if (commentsSection.classList.contains("active")) {
-              await loadComments(postId);
-              commentForm.style.display = "block";
-            } else {
-              commentsList.innerHTML = "";
-              commentForm.style.display = "none";
-            }
-          });
-        });
-
-        document.querySelectorAll(".comment-form").forEach((form) => {
-          form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const postId = form.getAttribute("data-post-id");
-            const commentContent = form.querySelector("input[name='comment']").value.trim();
-            if (!commentContent) return;
-
-            try {
-              const response = await fetch(`/forum/comments/${postId}/add`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include',
-                body: JSON.stringify({ content: commentContent }),
-              });
-              const result = await response.json();
-              if (result.success) {
-                form.querySelector("input[name='comment']").value = "";
-                await loadComments(postId);
-                const commentCountElement = document.getElementById(`comment-count-${postId}`);
-                commentCountElement.textContent = parseInt(commentCountElement.textContent) + 1 || 1;
-              } else {
-                console.error('Error adding comment:', result.message);
-              }
-            } catch (error) {
-              console.error("Error:", error);
-            }
-          });
-        });
-
-        async function loadComments(postId) {
-          const commentsList = document.getElementById(`comments-list-${postId}`);
-          try {
-            const response = await fetch(`/forum/comments/${postId}`, {
-              method: "GET",
-              credentials: 'include',
-            });
-            const result = await response.json();
-            if (result.success) {
-              commentsList.innerHTML = result.comments
-                .map(comment => `
-                  <div class="comment">
-                    <a href="/profile?userId=${comment.user_id}">
-                      <img src="${comment.user_avatar ? (comment.user_avatar.includes('/uploads/avatars/') ? comment.user_avatar : '/uploads/avatars/' + comment.user_avatar) : '/uploads/images/pngwing.com.png'}" 
-                           alt="${comment.user_name}" 
-                           class="comment-avatar" 
-                           style="width: 50px; border-radius: 50%;" />
-                    </a>
-                    <p>
-                      <a href="/profile?userId=${comment.user_id}" style="text-decoration: none; color: inherit;">
-                        <strong>${comment.user_name}</strong>
-                      </a>: ${comment.content}
-                    </p>
-                  </div>
-                `)
-                .join("");
-              const commentCountElement = document.getElementById(`comment-count-${postId}`);
-              commentCountElement.textContent = result.comments.length > 0 ? result.comments.length : 'لا تعليقات حتى الآن';
-            }
-          } catch (error) {
-            console.error("Error:", error);
+  
+      // منطق التعليقات
+      document.querySelectorAll(".show-comments-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const postId = btn.getAttribute("data-post-id");
+          const commentsSection = document.getElementById(`comments-${postId}`);
+          const commentsList = commentsSection.querySelector(".comments-list");
+          const commentForm = commentsSection.querySelector(".comment-form");
+  
+          commentsSection.classList.toggle("active");
+  
+          if (commentsSection.classList.contains("active")) {
+            await loadComments(postId);
+            commentForm.style.display = "block";
+          } else {
+            commentsList.innerHTML = "";
+            commentForm.style.display = "none";
           }
+        });
+      });
+  
+      async function loadComments(postId) {
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        try {
+          const response = await fetch(`/forum/comments/${postId}`, {
+            method: "GET",
+            credentials: 'include',
+            cache: 'no-store' // تحسين الأداء: منع التخزين المؤقت
+          });
+          const result = await response.json();
+          if (result.success) {
+            commentsList.innerHTML = result.comments
+              .map(comment => `
+                <div class="comment">
+                  <a href="/profile?userId=${comment.user_id}">
+                    <img src="${comment.user_avatar ? (comment.user_avatar.includes('/uploads/avatars/') ? comment.user_avatar : '/uploads/avatars/' + comment.user_avatar) : '/uploads/images/pngwing.com.png'}" 
+                         alt="${comment.user_name}" 
+                         class="comment-avatar" loading="lazy" />
+                  </a>
+                  <p>
+                    <a href="/profile?userId=${comment.user_id}" style="text-decoration: none; color: inherit;">
+                      <strong>${comment.user_name}</strong>
+                    </a>: ${comment.content}
+                  </p>
+                </div>
+              `)
+              .join("");
+            const commentCountElement = document.getElementById(`comment-count-${postId}`);
+            commentCountElement.textContent = result.comments.length > 0 ? result.comments.length : 'لا تعليقات';
+          }
+        } catch (error) {
+          console.error("Error:", error);
         }
-
-        // منطق الإعلانات
-        const addStoryBtn = document.getElementById('addStory');
-        const addStoryModal = document.getElementById('addStoryModal');
-        const storySlider = document.getElementById('storySlider');
-        const storyView = document.getElementById('storyView');
-        const storyImage = document.getElementById('storyImage');
-        const storyText = document.getElementById('storyText');
-        const adText = document.getElementById('adText');
-        const closeBtn = document.getElementById('closeBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const addAdForm = document.getElementById('addAdForm');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-
-        let currentStoryIndex = 0;
-        let stories = Array.from(document.querySelectorAll('.story-item:not(.add-story)'));
-        let intervalId;
-
-        addStoryBtn.addEventListener('click', () => {
-          addStoryModal.classList.add('show');
+      }
+  
+      // منطق التنقل في القائمة السفلية
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const link = item.getAttribute('data-link');
+          if (link) window.location.href = link;
         });
-
-        closeModalBtn.addEventListener('click', () => {
-          addStoryModal.classList.remove('show');
-          addAdForm.reset();
-        });
-
-        addAdForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const formData = new FormData(addAdForm);
-
-          try {
-            const response = await fetch('/forum/ad', {
-              method: 'POST',
-              body: formData,
-              credentials: 'include',
-            });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('Server response error:', response.status, errorText);
-              throw new Error(`فشل الطلب: ${response.status} - ${errorText}`);
-            }
-
-            const result = await response.json();
-            console.log('Response data:', result);
-
-            if (result.success) {
-              const newAd = document.createElement('div');
-              newAd.classList.add('story-item');
-              newAd.dataset.id = result.adId;
-              newAd.dataset.title = formData.get('title');
-              newAd.dataset.description = formData.get('description');
-
-              if (result.filename) {
-                const imageUrl = `/uploads/ads/${result.filename}`;
-                newAd.dataset.image = imageUrl;
-                newAd.innerHTML = `
-                  <img src="${imageUrl}" alt="${formData.get('title')}">
-                  <img src="${currentUserAvatar}" class="avatar" alt="${currentUserName}">
-                  <span class="username">${currentUserName}</span>
-                `;
-              } else {
-                newAd.innerHTML = `
-                  <img src="${currentUserAvatar}" class="avatar" alt="${currentUserName}">
-                  <span class="username">${currentUserName}</span>
-                `;
-              }
-
-              storySlider.insertBefore(newAd, addStoryBtn.nextSibling);
-              stories = Array.from(document.querySelectorAll('.story-item:not(.add-story)'));
-              addStoryModal.classList.remove('show');
-              addAdForm.reset();
-              alert("✅ تم إضافة الإعلان بنجاح!");
-            } else {
-              console.error('Error adding ad:', result.message);
-              alert(`❌ فشل في إضافة الإعلان: ${result.message || 'خطأ غير محدد'}`);
-            }
-          } catch (error) {
-            console.error("Error during fetch:", error.message);
-            alert(`❌ حدث خطأ: ${error.message}. يرجى المحاولة مرة أخرى أو التحقق من الاتصال.`);
-          }
-        });
-
-        storySlider.addEventListener('click', (e) => {
-          const storyItem = e.target.closest('.story-item:not(.add-story)');
-          if (storyItem) {
-            currentStoryIndex = stories.indexOf(storyItem);
-            showStory();
-          }
-        });
-
-        closeBtn.addEventListener('click', () => {
-          hideStory();
-        });
-
-        prevBtn.addEventListener('click', () => {
-          currentStoryIndex = Math.max(0, currentStoryIndex - 1);
+      });
+  
+      // منطق الإعلانات
+      const addStoryBtn = document.getElementById('addStory');
+      const addStoryModal = document.getElementById('addStoryModal');
+      const storySlider = document.getElementById('storySlider');
+      const storyView = document.getElementById('storyView');
+      const storyImage = document.getElementById('storyImage');
+      const storyText = document.getElementById('storyText');
+      const adText = document.getElementById('adText');
+      const closeBtn = document.getElementById('closeBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+  
+      let currentStoryIndex = 0;
+      let stories = Array.from(document.querySelectorAll('.story-item:not(.add-story)'));
+      let intervalId;
+  
+      addStoryBtn.addEventListener('click', () => {
+        addStoryModal.classList.add('show');
+      });
+  
+      closeModalBtn.addEventListener('click', () => {
+        addStoryModal.classList.remove('show');
+        addAdForm.reset();
+      });
+  
+      storySlider.addEventListener('click', (e) => {
+        const storyItem = e.target.closest('.story-item:not(.add-story)');
+        if (storyItem) {
+          currentStoryIndex = stories.indexOf(storyItem);
           showStory();
-        });
-
-        nextBtn.addEventListener('click', () => {
-          currentStoryIndex = Math.min(stories.length - 1, currentStoryIndex + 1);
-          showStory();
-        });
-
-        function showStory() {
-          if (stories.length === 0) return;
-          const story = stories[currentStoryIndex];
-          storyImage.src = story.dataset.image || '';
-          storyText.textContent = story.dataset.title || '';
-          adText.textContent = story.dataset.description || '';
-          storyView.classList.add('show');
-          updateProgressBars();
-          startProgress();
-        }
-
-        function hideStory() {
-          storyView.classList.remove('show');
-          clearInterval(intervalId);
-          progressContainer.innerHTML = '';
-        }
-
-        function updateProgressBars() {
-          progressContainer.innerHTML = '';
-          stories.forEach((_, index) => {
-            const bar = document.createElement('div');
-            bar.classList.add('progress-bar');
-            const progress = document.createElement('div');
-            progress.classList.add('progress');
-            if (index === currentStoryIndex) {
-              progress.style.width = '0%';
-            } else if (index < currentStoryIndex) {
-              progress.style.width = '100%';
-            }
-            bar.appendChild(progress);
-            progressContainer.appendChild(bar);
-          });
-        }
-
-        function startProgress() {
-          clearInterval(intervalId);
-          const progressBars = document.querySelectorAll('.progress-bar .progress');
-          const currentProgress = progressBars[currentStoryIndex];
-          let width = 0;
-          intervalId = setInterval(() => {
-            width += 1;
-            currentProgress.style.width = `${width}%`;
-            if (width >= 100) {
-              clearInterval(intervalId);
-              currentStoryIndex = Math.min(stories.length - 1, currentStoryIndex + 1);
-              if (currentStoryIndex < stories.length) {
-                showStory();
-              } else {
-                hideStory();
-              }
-            }
-          }, 50);
         }
       });
-    </script>
-  </div>
+  
+      closeBtn.addEventListener('click', () => {
+        hideStory();
+      });
+  
+      prevBtn.addEventListener('click', () => {
+        currentStoryIndex = Math.max(0, currentStoryIndex - 1);
+        showStory();
+      });
+  
+      nextBtn.addEventListener('click', () => {
+        currentStoryIndex = Math.min(stories.length - 1, currentStoryIndex + 1);
+        showStory();
+      });
+  
+      function showStory() {
+        if (stories.length === 0) return;
+        const story = stories[currentStoryIndex];
+        storyImage.src = story.dataset.image || '';
+        storyText.textContent = story.dataset.title || '';
+        adText.textContent = story.dataset.description || '';
+        storyView.classList.add('show');
+        updateProgressBars();
+        startProgress();
+      }
+  
+      function hideStory() {
+        storyView.classList.remove('show');
+        clearInterval(intervalId);
+        progressContainer.innerHTML = '';
+      }
+  
+      function updateProgressBars() {
+        progressContainer.innerHTML = '';
+        stories.forEach((_, index) => {
+          const bar = document.createElement('div');
+          bar.classList.add('progress-bar');
+          const progress = document.createElement('div');
+          progress.classList.add('progress');
+          if (index === currentStoryIndex) {
+            progress.style.width = '0%';
+          } else if (index < currentStoryIndex) {
+            progress.style.width = '100%';
+          }
+          bar.appendChild(progress);
+          progressContainer.appendChild(bar);
+        });
+      }
+  
+      function startProgress() {
+        clearInterval(intervalId);
+        const progressBars = document.querySelectorAll('.progress-bar .progress');
+        const currentProgress = progressBars[currentStoryIndex];
+        let width = 0;
+        intervalId = setInterval(() => {
+          width += 1;
+          currentProgress.style.width = `${width}%`;
+          if (width >= 100) {
+            clearInterval(intervalId);
+            currentStoryIndex = Math.min(stories.length - 1, currentStoryIndex + 1);
+            if (currentStoryIndex < stories.length) {
+              showStory();
+            } else {
+              hideStory();
+            }
+          }
+        }, 50);
+      }
+    });
+  </script>
+  
   <%- include('partials/footer') %>
 </body>
 </html>

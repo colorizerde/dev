@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const NotificationController = require("../controllers/NotificationController");
+const ChatController = require("../controllers/ChatController"); // لاستخدام markAllAsRead
 const router = express.Router();
 
 // إعداد multer لتحميل الصور
@@ -21,23 +22,21 @@ router.get("/notifications", NotificationController.showNotifications);
 router.post("/notifications/:id/markAsViewed", NotificationController.markAsViewed);
 
 // حذف إشعار معين
-router.post("/notifications/:id/delete", NotificationController.deleteNotification);
+router.post("/notifications/delete/:id", NotificationController.deleteNotification);
 
 // حذف جميع الإشعارات
 router.post("/notifications/delete-all", NotificationController.deleteAllNotifications);
 
 // عرض صفحة إرسال إشعار من المسؤول
-router.get("/admin/notify", (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.redirect("/login");
-
-  const decoded = jwt.verify(token, "your_jwt_secret");
-  if (decoded.role !== "admin") return res.status(403).send("غير مصرح لك");
-
-  res.render("adminNotify", { errorMessage: null, successMessage: null });
-});
+router.get("/admin/notify", NotificationController.showAdminNotifyPage);
 
 // إرسال إشعار من المسؤول
 router.post("/admin/notifications", upload.single("image"), NotificationController.sendAdminNotification);
+
+// تحديد جميع الإشعارات كمقروءة
+router.post("/notifications/mark-all-as-read", NotificationController.markAllNotificationsAsRead);
+
+// تحديد جميع الرسائل كمقروءة (من ChatController)
+router.post("/chat/mark-all-as-read", ChatController.markAllAsRead);
 
 module.exports = router;

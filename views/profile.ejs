@@ -1,11 +1,45 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+    <!-- العلامات الأساسية -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>الملف الشخصي</title>
-    <link rel="stylesheet" href="/css/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- تحسين SEO: إضافة وصف وعنوان ديناميكي -->
+    <meta name="description" content="الملف الشخصي لـ <%= user.name %> - عرض المعلومات الشخصية، معرض أعمال التصميم، والاقتباس الشخصي على Colorizer." />
+    <meta name="keywords" content="<%= user.name %>, ملف شخصي, تصميم, Colorizer, أعمال إبداعية" />
+    <meta name="author" content="<%= user.name %>" />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <title>الملف الشخصي لـ <%= user.name %> | Colorizer</title>
+
+    <!-- تحسين الأداء: تصحيح مسار CSS وضغطه -->
+    <link rel="stylesheet" href="/css/profile.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" media="screen" />
+
+    <!-- تحسين الأداء: تحميل مسبق للصورة الرئيسية -->
+    <link rel="preload" href="<%= user.avatar.includes('/uploads/avatars/') ? user.avatar : '/uploads/avatars/' + (user.avatar || 'default-avatar.png') %>" as="image" />
+
+    <!-- Open Graph لتحسين المشاركة على الشبكات الاجتماعية -->
+    <meta property="og:title" content="الملف الشخصي لـ <%= user.name %> | Colorizer" />
+    <meta property="og:description" content="استعرض المعلومات الشخصية ومعرض أعمال <%= user.name %> على Colorizer." />
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content="https://www.colorizer.com/profile/<%= user.id %>" />
+    <meta property="og:image" content="<%= user.avatar.includes('/uploads/avatars/') ? user.avatar : '/uploads/avatars/' + (user.avatar || 'default-avatar.png') %>" />
+    <meta property="og:image:alt" content="صورة الملف الشخصي لـ <%= user.name %>" />
+    <meta property="og:site_name" content="Colorizer" />
+    <meta property="og:locale" content="ar_AR" />
+
+    <!-- Twitter Card لتحسين المشاركة على تويتر -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="الملف الشخصي لـ <%= user.name %> | Colorizer" />
+    <meta name="twitter:description" content="استعرض المعلومات الشخصية ومعرض أعمال <%= user.name %> على Colorizer." />
+    <meta name="twitter:image" content="<%= user.avatar.includes('/uploads/avatars/') ? user.avatar : '/uploads/avatars/' + (user.avatar || 'default-avatar.png') %>" />
+
+    <!-- تحسين الأداء: إضافة DNS Prefetch و Preconnect -->
+    <link rel="dns-prefetch" href="//www.colorizer.com" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+
 </head>
 <body>
     <%- include('partials/headerhome') %> 
@@ -91,22 +125,21 @@
                     <div class="info-item">
                       <span class="info-label">البريد :</span>
                       <span class="info-value" id="email"><%= user.email %></span>
-                  </div>
-                  <div class="info-item">
+                    </div>
+                    <div class="info-item">
                       <span class="info-label">الهاتف :</span>
                       <span class="info-value" id="phone"><%= user.phone %></span>
-                  </div>
-                  <div class="info-item">
+                    </div>
+                    <div class="info-item">
                       <span class="info-label">الملف الشخصي :</span>
                       <a href="<%= user.portfolio %>" class="info-value">زيارة</a>
-                  </div>
-                  <div class="info-item">
+                    </div>
+                    <div class="info-item">
                       <span class="info-label">تاريخ الانضمام :</span>
                       <span class="info-value"><%= new Date(user.join_date).toISOString().split('T')[0] %></span>
-                  </div>
+                    </div>
                 </div>
             </div>
-           
             <% if (userId === user.id) { %>
                 <button id="edit-profile-button" class="edit-profile-button">
                     <i class="fas fa-edit"></i> تعديل المعلومات
@@ -116,8 +149,9 @@
 
         <!-- معرض أعمال التصميم -->
         <div class="design-gallery-section">
-            <text style="text-align: center;  display: flex; justify-content: center; font-size: 2rem; font-style: bold; margin: 10px; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif ; color: #6c5ce7;
-">معرض أعمال التصميم</text>
+            <text style="text-align: center; display: flex; justify-content: center; font-size: 2rem; font-weight: bold; margin: 10px; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; color: var(--primary-color);">
+                معرض أعمال التصميم
+            </text>
             <div class="general-container" id="design-gallery">
                 <% if (gallery && gallery.length > 0) { %>
                     <% gallery.forEach((item, index) => { %>
@@ -137,7 +171,7 @@
                         </label>
                     <% }); %>
                 <% } else { %>
-                    <p style="text-align: center; color: #7f8c8d;">لا توجد أعمال تصميم بعد.</p>
+                    <p style="text-align: center; color: var(--muted-text);">لا توجد أعمال تصميم بعد.</p>
                 <% } %>
             </div>
             <% if (userId === user.id) { %>
@@ -359,7 +393,6 @@
                             addDesignForm.style.display = "none";
                             addDesignBtn.style.display = "block";
 
-                            // إضافة معالج الحذف للعنصر الجديد
                             label.querySelector(".delete-form").addEventListener("submit", handleDeleteDesign);
                         } else {
                             alert(result.message || "حدث خطأ أثناء إضافة العمل.");
@@ -370,7 +403,6 @@
                     }
                 });
 
-                // معالجة الحذف للعناصر الموجودة
                 document.querySelectorAll(".delete-form").forEach(form => {
                     form.addEventListener("submit", handleDeleteDesign);
                 });
@@ -393,9 +425,8 @@
                             designGallery.removeChild(radio);
                             designGallery.removeChild(label);
 
-                            // إذا أصبح المعرض فارغًا
                             if (!designGallery.querySelector(".content")) {
-                                designGallery.innerHTML = '<p style="text-align: center; color: #7f8c8d;">لا توجد أعمال تصميم بعد.</p>';
+                                designGallery.innerHTML = '<p style="text-align: center; color: var(--muted-text);">لا توجد أعمال تصميم بعد.</p>';
                             }
                         } else {
                             alert(result.message || "حدث خطأ أثناء الحذف.");

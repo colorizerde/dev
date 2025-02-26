@@ -2,6 +2,7 @@ const db = require("../config/db");
 
 class ForumModel {
   static async addPost(userId, content, images) {
+    // التحقق من الحد اليومي يتم في NotificationModel.canUserPost
     const query = `
       INSERT INTO postsforum (user_id, content, image1, image2, image3, image4, created_at)
       VALUES (?, ?, ?, ?, ?, ?, NOW())
@@ -14,8 +15,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId, content, ...imageValues], (err, result) => {
         if (err) {
-          console.error("Error adding post:", err);
-          return reject(new Error("Error adding post"));
+          console.error("خطأ في إضافة المنشور:", err);
+          return reject(new Error("خطأ في إضافة المنشور"));
         }
         resolve(result);
       });
@@ -27,8 +28,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [postId], (err, result) => {
         if (err) {
-          console.error("Error deleting post:", err);
-          return reject(new Error("Error deleting post"));
+          console.error("خطأ في حذف المنشور:", err);
+          return reject(new Error("خطأ في حذف المنشور"));
         }
         resolve(result);
       });
@@ -49,8 +50,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [content, ...imageValues, postId], (err, result) => {
         if (err) {
-          console.error("Error updating post:", err);
-          return reject(new Error("Error updating post"));
+          console.error("خطأ في تحديث المنشور:", err);
+          return reject(new Error("خطأ في تحديث المنشور"));
         }
         resolve(result);
       });
@@ -65,22 +66,22 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(checkQuery, [postId, userId], (err, result) => {
         if (err) {
-          console.error("Error checking like:", err);
-          return reject(new Error("Error checking like"));
+          console.error("خطأ في التحقق من الإعجاب:", err);
+          return reject(new Error("خطأ في التحقق من الإعجاب"));
         }
         if (result.length > 0) {
           db.query(deleteQuery, [postId, userId], (delErr) => {
             if (delErr) {
-              console.error("Error deleting like:", delErr);
-              return reject(new Error("Error deleting like"));
+              console.error("خطأ في حذف الإعجاب:", delErr);
+              return reject(new Error("خطأ في حذف الإعجاب"));
             }
             resolve(false);
           });
         } else {
           db.query(addQuery, [postId, userId], (addErr) => {
             if (addErr) {
-              console.error("Error adding like:", addErr);
-              return reject(new Error("Error adding like"));
+              console.error("خطأ في إضافة الإعجاب:", addErr);
+              return reject(new Error("خطأ في إضافة الإعجاب"));
             }
             resolve(true);
           });
@@ -94,8 +95,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [postId], (err, result) => {
         if (err) {
-          console.error("Error getting like count:", err);
-          return reject(new Error("Error getting like count"));
+          console.error("خطأ في جلب عدد الإعجابات:", err);
+          return reject(new Error("خطأ في جلب عدد الإعجابات"));
         }
         resolve(result[0].like_count);
       });
@@ -103,12 +104,13 @@ class ForumModel {
   }
 
   static async addComment(postId, userId, content) {
+    // التحقق من الحد اليومي يتم في NotificationModel.canUserComment
     const query = `INSERT INTO commentsforum (post_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())`;
     return new Promise((resolve, reject) => {
       db.query(query, [postId, userId, content], (err, result) => {
         if (err) {
-          console.error("Error adding comment:", err);
-          return reject(new Error("Error adding comment"));
+          console.error("خطأ في إضافة التعليق:", err);
+          return reject(new Error("خطأ في إضافة التعليق"));
         }
         resolve(result);
       });
@@ -127,8 +129,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [postId], (err, results) => {
         if (err) {
-          console.error("Error fetching comments:", err);
-          return reject(new Error("Error fetching comments"));
+          console.error("خطأ في جلب التعليقات:", err);
+          return reject(new Error("خطأ في جلب التعليقات"));
         }
         resolve(results);
       });
@@ -144,8 +146,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId], (err, results) => {
         if (err) {
-          console.error("Error fetching user by ID:", err);
-          return reject(new Error("Error fetching user"));
+          console.error("خطأ في جلب المستخدم بواسطة المعرف:", err);
+          return reject(new Error("خطأ في جلب المستخدم"));
         }
         resolve(results[0] || null);
       });
@@ -160,22 +162,22 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(checkQuery, [commentId, userId], (err, result) => {
         if (err) {
-          console.error("Error checking like on comment:", err);
-          return reject(new Error("Error checking like on comment"));
+          console.error("خطأ في التحقق من الإعجاب على التعليق:", err);
+          return reject(new Error("خطأ في التحقق من الإعجاب على التعليق"));
         }
         if (result.length > 0) {
           db.query(deleteQuery, [commentId, userId], (delErr) => {
             if (delErr) {
-              console.error("Error deleting like on comment:", delErr);
-              return reject(new Error("Error deleting like on comment"));
+              console.error("خطأ في حذف الإعجاب على التعليق:", delErr);
+              return reject(new Error("خطأ في حذف الإعجاب على التعليق"));
             }
             resolve(false);
           });
         } else {
           db.query(addQuery, [commentId, userId], (addErr) => {
             if (addErr) {
-              console.error("Error adding like on comment:", addErr);
-              return reject(new Error("Error adding like on comment"));
+              console.error("خطأ في إضافة الإعجاب على التعليق:", addErr);
+              return reject(new Error("خطأ في إضافة الإعجاب على التعليق"));
             }
             resolve(true);
           });
@@ -199,8 +201,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId || null], (err, results) => {
         if (err) {
-          console.error("Error fetching all posts:", err);
-          return reject(new Error("Error fetching posts"));
+          console.error("خطأ في جلب جميع المنشورات:", err);
+          return reject(new Error("خطأ في جلب المنشورات"));
         }
         resolve(results);
       });
@@ -218,8 +220,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [postId], (err, results) => {
         if (err) {
-          console.error("Error fetching post details:", err);
-          return reject(new Error("Error fetching post details"));
+          console.error("خطأ في جلب تفاصيل المنشور:", err);
+          return reject(new Error("خطأ في جلب تفاصيل المنشور"));
         }
         resolve(results[0]);
       });
@@ -231,8 +233,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId, postId], (err, result) => {
         if (err) {
-          console.error("Error hiding post:", err);
-          return reject(new Error("Error hiding post"));
+          console.error("خطأ في إخفاء المنشور:", err);
+          return reject(new Error("خطأ في إخفاء المنشور"));
         }
         resolve(result);
       });
@@ -244,8 +246,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId, postId], (err, result) => {
         if (err) {
-          console.error("Error checking if post is hidden:", err);
-          return reject(new Error("Error checking if post is hidden"));
+          console.error("خطأ في التحقق من إخفاء المنشور:", err);
+          return reject(new Error("خطأ في التحقق من إخفاء المنشور"));
         }
         resolve(result.length > 0);
       });
@@ -257,8 +259,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [postId, userId], (err, result) => {
         if (err) {
-          console.error("Error checking if post is owned by user:", err);
-          return reject(new Error("Error checking if post is owned by user"));
+          console.error("خطأ في التحقق من ملكية المنشور:", err);
+          return reject(new Error("خطأ في التحقق من ملكية المنشور"));
         }
         resolve(result.length > 0);
       });
@@ -280,8 +282,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId, postId], (err, result) => {
         if (err) {
-          console.error("Error sharing post:", err);
-          return reject(new Error("Error sharing post"));
+          console.error("خطأ في مشاركة المنشور:", err);
+          return reject(new Error("خطأ في مشاركة المنشور"));
         }
         resolve(result);
       });
@@ -293,8 +295,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [avatar, userId], (err, result) => {
         if (err) {
-          console.error("Error uploading avatar:", err);
-          return reject(new Error("Error uploading avatar"));
+          console.error("خطأ في رفع الصورة الرمزية:", err);
+          return reject(new Error("خطأ في رفع الصورة الرمزية"));
         }
         resolve(result);
       });
@@ -306,6 +308,7 @@ class ForumModel {
   }
 
   static async addAd(userId, title, description, image) {
+    // التحقق من الحد اليومي يتم في NotificationModel.canUserAddAd
     const query = `
       INSERT INTO ads (user_id, title, description, image, created_at)
       VALUES (?, ?, ?, ?, NOW())
@@ -313,8 +316,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId, title, description, image], (err, result) => {
         if (err) {
-          console.error("Error adding ad:", err);
-          return reject(new Error("Error adding ad"));
+          console.error("خطأ في إضافة الإعلان:", err);
+          return reject(new Error("خطأ في إضافة الإعلان"));
         }
         resolve(result.insertId);
       });
@@ -331,14 +334,14 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, (err, results) => {
         if (err) {
-          console.error("Error fetching ads:", err);
-          return reject(new Error("Error fetching ads"));
+          console.error("خطأ في جلب الإعلانات:", err);
+          return reject(new Error("خطأ في جلب الإعلانات"));
         }
         resolve(results);
       });
     });
   }
-  // دالة لحذف الإعلانات التي مر عليها أكثر من 24 ساعة
+
   static async deleteOldAds() {
     const query = `
       DELETE FROM ads 
@@ -347,16 +350,15 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, (err, result) => {
         if (err) {
-          console.error("Error deleting old ads:", err);
-          return reject(new Error("Error deleting old ads"));
+          console.error("خطأ في حذف الإعلانات القديمة:", err);
+          return reject(new Error("خطأ في حذف الإعلانات القديمة"));
         }
-        console.log(`Deleted ${result.affectedRows} old ads`);
+        console.log(`تم حذف ${result.affectedRows} إعلانات قديمة`);
         resolve(result);
       });
     });
   }
 
-  // دالة للتحقق من عدد الإعلانات اليومية للمستخدم
   static async getDailyAdCount(userId) {
     const query = `
       SELECT COUNT(*) AS ad_count 
@@ -367,13 +369,14 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId], (err, result) => {
         if (err) {
-          console.error("Error fetching daily ad count:", err);
-          return reject(new Error("Error fetching daily ad count"));
+          console.error("خطأ في جلب عدد الإعلانات اليومية:", err);
+          return reject(new Error("خطأ في جلب عدد الإعلانات اليومية"));
         }
         resolve(result[0].ad_count);
       });
     });
   }
+
   static async getUserPosts(userId) {
     const query = `
       SELECT p.id, p.content, p.image1, p.image2, p.image3, p.image4,
@@ -389,8 +392,8 @@ class ForumModel {
     return new Promise((resolve, reject) => {
       db.query(query, [userId], (err, results) => {
         if (err) {
-          console.error("Error fetching user posts:", err);
-          return reject(new Error("Error fetching user posts"));
+          console.error("خطأ في جلب منشورات المستخدم:", err);
+          return reject(new Error("خطأ في جلب منشورات المستخدم"));
         }
         resolve(results);
       });

@@ -1,4 +1,5 @@
-const ChatModel = require("../models/chatModel");
+const ChatModel = require("../models/ChatModel");
+const NotificationModel = require("../models/NotificationModel");
 const jwt = require("jsonwebtoken");
 const { getIO } = require("../socket");
 
@@ -28,6 +29,11 @@ class ChatController {
           : (message.sender_avatar ? (message.sender_avatar.includes('/uploads/avatars/') ? message.sender_avatar : `/uploads/avatars/${message.sender_avatar}`) : '/uploads/images/pngwing.com.png'),
       }));
 
+      await ChatModel.updateLastActive(userId);
+
+      const unreadCount = await NotificationModel.getUnreadCount(userId);
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
+
       const io = getIO();
       io.emit("chatOpened", {
         userId,
@@ -43,10 +49,13 @@ class ChatController {
         friendId, 
         userId,
         currentUserAvatar,
-        friendAvatar
+        friendAvatar,
+        friendName: friend.name,
+        friendLastActive: friend.last_active,
+        unreadCount,
+        unreadMessagesCount
       });
     } catch (error) {
-      console.error("Error loading chat page:", error);
       res.status(500).send("خطأ في تحميل صفحة الدردشة");
     }
   }
@@ -84,11 +93,12 @@ class ChatController {
         content: message.content,
         image_path: imagePath,
         created_at: message.created_at,
+        is_read: 0
       });
 
       res.status(201).json({ message });
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error in sendMessage:", error);
       res.status(500).json({ error: "خطأ في إرسال الرسالة" });
     }
   }
@@ -110,7 +120,6 @@ class ChatController {
       await ChatModel.deleteMessage(messageId);
       res.redirect("/messages");
     } catch (error) {
-      console.error("خطأ أثناء حذف الرسالة:", error);
       res.status(500).send("حدث خطأ أثناء حذف الرسالة");
     }
   }
@@ -126,7 +135,6 @@ class ChatController {
       await ChatModel.deleteAllMessages(userId);
       res.redirect("/messages");
     } catch (error) {
-      console.error("Error deleting all messages:", error);
       res.status(500).send("خطأ أثناء حذف جميع الرسائل");
     }
   }
@@ -158,20 +166,26 @@ class ChatController {
           : (message.sender_avatar ? (message.sender_avatar.includes('/uploads/avatars/') ? message.sender_avatar : `/uploads/avatars/${message.sender_avatar}`) : '/uploads/images/pngwing.com.png'),
       }));
 
+      const unreadCount = await NotificationModel.getUnreadCount(userId);
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
+
       res.render("messages", {
         messages: enrichedMessages,
         userId,
         friendId,
         currentUserAvatar,
+        unreadCount,
+        unreadMessagesCount,
         errorMessage: null,
       });
     } catch (error) {
-      console.error("حدث خطأ أثناء جلب صفحة الرسائل:", error);
       res.render("messages", {
         messages: [],
         userId: null,
         friendId: null,
         currentUserAvatar: '/uploads/images/pngwing.com.png',
+        unreadCount: 0,
+        unreadMessagesCount: 0,
         errorMessage: "حدث خطأ أثناء جلب الرسائل",
       });
     }
@@ -198,18 +212,24 @@ class ChatController {
             : (message.sender_avatar ? (message.sender_avatar.includes('/uploads/avatars/') ? message.sender_avatar : `/uploads/avatars/${message.sender_avatar}`) : '/uploads/images/pngwing.com.png'),
         }));
 
+      const unreadCount = await NotificationModel.getUnreadCount(userId);
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
+
       res.render("messages", {
         messages: enrichedMessages,
         userId,
         currentUserAvatar,
+        unreadCount,
+        unreadMessagesCount,
         errorMessage: null,
       });
     } catch (error) {
-      console.error("حدث خطأ أثناء جلب صفحة الرسائل:", error);
       res.render("messages", {
         messages: [],
         userId: null,
         currentUserAvatar: '/uploads/images/pngwing.com.png',
+        unreadCount: 0,
+        unreadMessagesCount: 0,
         errorMessage: "حدث خطأ أثناء جلب الرسائل",
       });
     }
@@ -225,7 +245,8 @@ class ChatController {
 
       await ChatModel.markAllAsRead(userId);
       const messages = await ChatModel.getReceivedMessages(userId);
-      const unreadCount = await ChatModel.getUnreadCount(userId);
+      const unreadCount = await NotificationModel.getUnreadCount(userId);
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
       const currentUser = await ChatModel.getUserById(userId);
       const currentUserAvatar = currentUser?.avatar ? (currentUser.avatar.includes('/uploads/avatars/') ? currentUser.avatar : `/uploads/avatars/${currentUser.avatar}`) : '/uploads/images/pngwing.com.png';
 
@@ -244,11 +265,12 @@ class ChatController {
       res.render("messages", { 
         messages: enrichedMessages, 
         unreadCount, 
+        unreadMessagesCount,
         userId, 
-        currentUserAvatar 
+        currentUserAvatar,
+        errorMessage: null
       });
     } catch (error) {
-      console.error("خطأ في عرض الرسائل:", error);
       res.status(500).send("خطأ في عرض الرسائل");
     }
   }
@@ -263,7 +285,8 @@ class ChatController {
 
       await ChatModel.markAllAsRead(userId);
       const messages = await ChatModel.getLatestMessagesForFriends(userId);
-      const unreadCount = await ChatModel.getUnreadCount(userId);
+      const unreadCount = await NotificationModel.getUnreadCount(userId);
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
       const currentUser = await ChatModel.getUserById(userId);
       const currentUserAvatar = currentUser?.avatar ? (currentUser.avatar.includes('/uploads/avatars/') ? currentUser.avatar : `/uploads/avatars/${currentUser.avatar}`) : '/uploads/images/pngwing.com.png';
 
@@ -281,15 +304,16 @@ class ChatController {
         userId,
         currentUserAvatar,
         unreadCount,
+        unreadMessagesCount,
         errorMessage: null,
       });
     } catch (error) {
-      console.error("حدث خطأ أثناء جلب صفحة الرسائل:", error);
       res.render("messages", {
         messages: [],
         userId: null,
         currentUserAvatar: '/uploads/images/pngwing.com.png',
         unreadCount: 0,
+        unreadMessagesCount: 0,
         errorMessage: "حدث خطأ أثناء جلب الرسائل",
       });
     }
@@ -298,16 +322,15 @@ class ChatController {
   static async markAllAsRead(req, res) {
     try {
       const token = req.cookies.token;
-      if (!token) return res.status(401).send("يرجى تسجيل الدخول أولاً");
+      if (!token) return res.status(401).json({ success: false, message: "يرجى تسجيل الدخول أولاً" });
 
       const decoded = jwt.verify(token, "your_jwt_secret");
       const userId = decoded.id;
 
       await ChatModel.markAllAsRead(userId);
-      res.redirect("/messages");
+      res.status(200).json({ success: true });
     } catch (error) {
-      console.error("خطأ أثناء تحديث حالة جميع الرسائل:", error);
-      res.status(500).send("خطأ أثناء تحديث حالة الرسائل");
+      res.status(500).json({ success: false, message: "خطأ أثناء تحديث حالة الرسائل" });
     }
   }
 
@@ -328,7 +351,6 @@ class ChatController {
       await ChatModel.markAsRead(messageId);
       res.redirect("/messages");
     } catch (error) {
-      console.error("خطأ أثناء تحديث حالة الرسالة:", error);
       res.status(500).send("خطأ أثناء تحديث حالة الرسالة");
     }
   }
@@ -356,10 +378,29 @@ class ChatController {
 
       res.json({ success: true, avatar: newAvatarPath });
     } catch (error) {
-      console.error("Error updating avatar:", error);
       res.status(500).json({ error: "خطأ أثناء تحديث الصورة" });
     }
   }
+
+  static async getUnreadMessagesCount(req, res) {
+    try {
+      const token = req.cookies.token;
+      if (!token) {
+        return res.status(401).json({ success: false, message: "يرجى تسجيل الدخول أولاً" });
+      }
+
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      const userId = decoded.id;
+
+      const unreadMessagesCount = await ChatModel.getUnreadCount(userId);
+      console.log(`Sending unreadMessagesCount for user ${userId}: ${unreadMessagesCount}`);
+      res.json({ success: true, unreadMessagesCount });
+    } catch (error) {
+      console.error("Error in getUnreadMessagesCount:", error);
+      res.status(500).json({ success: false, message: "خطأ أثناء جلب عدد الرسائل غير المقروءة" });
+    }
+  }
+  
 }
 
 module.exports = ChatController;

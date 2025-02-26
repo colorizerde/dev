@@ -5,20 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>صفحة الأصدقاء</title>
   <link rel="stylesheet" href="/css/friends.css" />
-  <style>
-    .online { color: green; }
-    .offline { color: gray; }
-    .unread-count { background: #e74c3c; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; }
-    .message-success { color: green; text-align: center; margin: 10px 0; }
-    .message-error { color: red; text-align: center; margin: 10px 0; }
-    .friend-actions { display: flex; gap: 10px; align-items: center; }
-    .action-icon { background: none; border: none; cursor: pointer; font-size: 16px; }
-    .action-icon i { color: #3498db; }
-    .action-icon:hover i { color: #2980b9; }
-    .li { padding: 10px; border-bottom: 1px solid #ddd; }
-    button { padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #2980b9; }
-  </style>
 </head>
 <body>
   <%- include('partials/headerhome') %>
@@ -45,14 +31,13 @@
         </div>
         <% if (typeof searchResults !== 'undefined' && searchResults && searchResults.length > 0) { %>
           <h2>نتائج البحث</h2>
-          <ul>
+          <ul class="ul">
             <% searchResults.forEach(function(result) { %>
-              <li style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
+              <li class="li">
+                <div class="friend-info">
                   <img src="<%= result.avatar %>" 
                        alt="صورة المستخدم" 
-                       onerror="this.src='/uploads/images/pngwing.com.png'" 
-                       style="width: 40px; height: 40px; border-radius: 50%;" />
+                       onerror="this.src='/uploads/images/pngwing.com.png'" />
                   <span><%= result.name %></span>
                 </div>
                 <% if (result.friendship_status === 'not_friend') { %>
@@ -61,17 +46,17 @@
                     <button type="submit">إضافة</button>
                   </form>
                 <% } else if (result.friendship_status === 'request_sent') { %>
-                  <span style="color: #f39c12;">طلب مرسل</span>
+                  <span class="status pending">طلب مرسل</span>
                 <% } else if (result.friendship_status === 'friend') { %>
-                  <span style="color: #2ecc71;">صديق</span>
+                  <span class="status friend">صديق</span>
                 <% } else if (result.friendship_status === 'blocked') { %>
-                  <span style="color: #e74c3c;">محظور</span>
+                  <span class="status blocked">محظور</span>
                 <% } %>
               </li>
             <% }); %>
           </ul>
         <% } else if (typeof searchResults !== 'undefined' && searchResults && searchResults.length === 0) { %>
-          <p style="text-align: center">لا توجد نتائج مطابقة</p>
+          <p class="no-results">لا توجد نتائج مطابقة</p>
         <% } %>
       </section>
 
@@ -79,16 +64,15 @@
       <text class="text">الأصدقاء المحظورين</text>
       <section>
         <% if (!blockedFriends || blockedFriends.length === 0) { %>
-          <p style="text-align: center">لا يوجد أصدقاء محظورين</p>
+          <p class="no-results">لا يوجد أصدقاء محظورين</p>
         <% } else { %>
           <ul class="ul" id="blocked-friends-list">
             <% blockedFriends.forEach(function(blocked) { %>
-              <li class="li" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;" data-id="<%= blocked.id %>">
-                <div style="display: flex; align-items: center; gap: 10px;">
+              <li class="li" data-id="<%= blocked.id %>">
+                <div class="friend-info">
                   <img src="<%= blocked.avatar %>" 
                        alt="صورة المحظور" 
-                       onerror="this.src='/uploads/images/pngwing.com.png'" 
-                       style="width: 40px; height: 40px; border-radius: 50%;" />
+                       onerror="this.src='/uploads/images/pngwing.com.png'" />
                   <span><%= blocked.name %></span>
                 </div>
                 <form action="/friends/unblock/<%= blocked.id %>" method="post">
@@ -105,17 +89,16 @@
     <div class="center">
       <section>
         <text class="text">أصدقاؤك <span id="friends-count">(<%= friends ? friends.length : 0 %>)</span></text>
-        <ul class="ul" id="friends-list">
-          <% if (!friends || friends.length === 0) { %>
-            <p style="text-align: center">لا يوجد أصدقاء حاليًا</p>
-          <% } else { %>
+        <% if (!friends || friends.length === 0) { %>
+          <p class="no-results">لا يوجد أصدقاء حاليًا</p>
+        <% } else { %>
+          <ul class="ul" id="friends-list">
             <% friends.forEach(function(friend) { %>
-              <li class="li" style="display: flex; justify-content: space-between; align-items: center;" data-id="<%= friend.id %>">
-                <div style="display: flex; align-items: center; gap: 10px;">
+              <li class="li" data-id="<%= friend.id %>">
+                <div class="friend-info">
                   <img src="<%= friend.avatar %>" 
                        alt="صورة الصديق" 
-                       onerror="this.src='/uploads/images/pngwing.com.png'" 
-                       style="width: 40px; height: 40px; border-radius: 50%;" />
+                       onerror="this.src='/uploads/images/pngwing.com.png'" />
                   <span><%= friend.name %></span>
                   <span class="<%= friend.online ? 'online' : 'offline' %>"><%= friend.online ? 'متصل' : 'غير متصل' %></span>
                 </div>
@@ -128,8 +111,8 @@
                 </div>
               </li>
             <% }); %>
-          <% } %>
-        </ul>
+          </ul>
+        <% } %>
       </section>
     </div>
 
@@ -138,24 +121,23 @@
       <text class="text">طلبات الصداقة <% if (unreadCount > 0) { %><span class="unread-count"><%= unreadCount %></span><% } %></text>
       <section>
         <% if (!friendRequests || friendRequests.length === 0) { %>
-          <p style="text-align: center">لا توجد طلبات صداقة جديدة</p>
+          <p class="no-results">لا توجد طلبات صداقة جديدة</p>
         <% } else { %>
           <ul class="ul" id="friend-requests-list">
             <% friendRequests.forEach(function(request) { %>
-              <li class="li" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;" data-id="<%= request.id %>">
-                <div style="display: flex; align-items: center; gap: 10px;">
+              <li class="li" data-id="<%= request.id %>">
+                <div class="friend-info">
                   <img src="<%= request.sender_avatar %>" 
                        alt="صورة مرسل الطلب" 
-                       onerror="this.src='/uploads/images/pngwing.com.png'" 
-                       style="width: 40px; height: 40px; border-radius: 50%;" />
+                       onerror="this.src='/uploads/images/pngwing.com.png'" />
                   <span><%= request.sender_name %></span>
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div class="friend-actions">
                   <form action="/friends/accept-request/<%= request.id %>" method="post">
-                    <button type="submit">قبول</button>
+                    <button type="submit" class="action-button accept">قبول</button>
                   </form>
                   <form action="/friends/reject-request/<%= request.id %>" method="post">
-                    <button type="submit">رفض</button>
+                    <button type="submit" class="action-button reject">رفض</button>
                   </form>
                 </div>
               </li>
@@ -166,22 +148,21 @@
       <text class="text">اقتراحات الأصدقاء</text>
       <section>
         <% if (!users || users.length === 0) { %>
-          <p style="text-align: center">لا توجد اقتراحات حاليًا</p>
+          <p class="no-results">لا توجد اقتراحات حاليًا</p>
         <% } else { %>
           <ul class="ul" id="suggested-friends-list">
             <% users.forEach(function(user) { %>
-              <li class="li" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;" data-id="<%= user.id %>">
-                <div style="display: flex; align-items: center; gap: 10px;">
+              <li class="li" data-id="<%= user.id %>">
+                <div class="friend-info">
                   <img src="<%= user.avatar %>" 
                        alt="صورة المستخدم" 
-                       onerror="this.src='/uploads/images/pngwing.com.png'" 
-                       style="width: 40px; height: 40px; border-radius: 50%;" />
+                       onerror="this.src='/uploads/images/pngwing.com.png'" />
                   <span><%= user.name %></span>
                 </div>
-                <div class="span" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <div class="suggestion-details">
                   <span><%= user.country || 'غير محدد' %></span>
                   <span>العمر: <%= user.age || 'غير محدد' %></span>
-                  <span><%= user.programming_languages || 'غير محدد' %></span>
+                  <span><%= user.language || 'غير محدد' %></span>
                 </div>
                 <form action="/friends/send-request" method="post">
                   <input type="hidden" name="friendId" value="<%= user.id %>" />
@@ -195,7 +176,7 @@
     </div>
   </div>
 
-  <footer style="margin-top: 40vh"><%- include('partials/footer') %></footer>
+  <footer><%- include('partials/footer') %></footer>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -204,7 +185,6 @@
 
     socket.emit("join", userId);
 
-    // استقبال طلب صداقة جديد
     socket.on("friendRequestReceived", ({ senderId, senderName }) => {
       fetch(`/friends/friend-request/${senderId}`)
         .then(response => response.json())
@@ -212,26 +192,20 @@
           const requestList = document.getElementById("friend-requests-list");
           const li = document.createElement("li");
           li.className = "li";
-          li.style.display = "flex";
-          li.style.flexDirection = "row";
-          li.style.alignItems = "center";
-          li.style.justifyContent = "space-between";
-          li.style.gap = "8px";
           li.dataset.id = request.id;
           li.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="friend-info">
               <img src="${request.sender_avatar}" 
                    alt="صورة مرسل الطلب" 
-                   onerror="this.src='/uploads/images/pngwing.com.png'" 
-                   style="width: 40px; height: 40px; border-radius: 50%;" />
+                   onerror="this.src='/uploads/images/pngwing.com.png'" />
               <span>${request.sender_name}</span>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="friend-actions">
               <form action="/friends/accept-request/${request.id}" method="post">
-                <button type="submit">قبول</button>
+                <button type="submit" class="action-button accept">قبول</button>
               </form>
               <form action="/friends/reject-request/${request.id}" method="post">
-                <button type="submit">رفض</button>
+                <button type="submit" class="action-button reject">رفض</button>
               </form>
             </div>
           `;
@@ -242,13 +216,12 @@
           if (unreadCountElement) {
             unreadCountElement.textContent = unreadCount + 1;
           } else {
-            const textElement = document.querySelector(".text:contains('طلبات الصداقة')");
+            const textElement = document.querySelector(".left .text");
             textElement.innerHTML += ` <span class="unread-count">1</span>`;
           }
         });
     });
 
-    // قبول طلب صداقة
     socket.on("friendRequestAccepted", ({ receiverId }) => {
       fetch(`/friends/friend/${receiverId}`)
         .then(response => response.json())
@@ -256,16 +229,12 @@
           const friendsList = document.getElementById("friends-list");
           const li = document.createElement("li");
           li.className = "li";
-          li.style.display = "flex";
-          li.style.justifyContent = "space-between";
-          li.style.alignItems = "center";
           li.dataset.id = friend.id;
           li.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="friend-info">
               <img src="${friend.avatar}" 
                    alt="صورة الصديق" 
-                   onerror="this.src='/uploads/images/pngwing.com.png'" 
-                   style="width: 40px; height: 40px; border-radius: 50%;" />
+                   onerror="this.src='/uploads/images/pngwing.com.png'" />
               <span>${friend.name}</span>
               <span class="${friend.online ? 'online' : 'offline'}">${friend.online ? 'متصل' : 'غير متصل'}</span>
             </div>
@@ -285,7 +254,6 @@
         });
     });
 
-    // إلغاء طلب صداقة
     socket.on("friendRequestCanceled", ({ senderId }) => {
       const requestElement = document.querySelector(`#friend-requests-list li[data-id="${senderId}"]`);
       if (requestElement) requestElement.remove();
@@ -298,7 +266,6 @@
       }
     });
 
-    // حظر صديق
     socket.on("friendBlocked", ({ friendId }) => {
       const friendElement = document.querySelector(`#friends-list li[data-id="${friendId}"]`);
       if (friendElement) friendElement.remove();
@@ -309,18 +276,12 @@
         .then(blocked => {
           const li = document.createElement("li");
           li.className = "li";
-          li.style.display = "flex";
-          li.style.flexDirection = "row";
-          li.style.alignItems = "center";
-          li.style.justifyContent = "space-between";
-          li.style.gap = "8px";
           li.dataset.id = blocked.id;
           li.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="friend-info">
               <img src="${blocked.avatar}" 
                    alt="صورة المحظور" 
-                   onerror="this.src='/uploads/images/pngwing.com.png'" 
-                   style="width: 40px; height: 40px; border-radius: 50%;" />
+                   onerror="this.src='/uploads/images/pngwing.com.png'" />
               <span>${blocked.name}</span>
             </div>
             <form action="/friends/unblock/${blocked.id}" method="post">
@@ -335,7 +296,6 @@
       friendsCountElement.textContent = `(${currentCount - 1})`;
     });
 
-    // إلغاء حظر صديق
     socket.on("friendUnblocked", ({ friendId }) => {
       const blockedElement = document.querySelector(`#blocked-friends-list li[data-id="${friendId}"]`);
       if (blockedElement) blockedElement.remove();

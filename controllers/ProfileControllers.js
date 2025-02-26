@@ -26,10 +26,10 @@ class ProfileControllers {
         }
       });
     } catch (error) {
-      console.error("خطأ في إضافة عمل تصميم:", error);
       res.status(500).json({ success: false, message: "حدث خطأ في الخادم." });
     }
   }
+
   static async deleteDesign(req, res) {
     try {
       if (!req.user || !req.user.id) return res.status(403).json({ success: false, message: "مطلوب تسجيل الدخول." });
@@ -46,10 +46,10 @@ class ProfileControllers {
         res.status(404).json({ success: false, message: "العمل غير موجود أو لا تملك صلاحية حذفه." });
       }
     } catch (error) {
-      console.error("خطأ في حذف عمل تصميم:", error);
       res.status(500).json({ success: false, message: "حدث خطأ في الخادم." });
     }
   }
+
   static async GetProfileControllers(req, res) {
     try {
       const token = req.cookies.token;
@@ -68,14 +68,10 @@ class ProfileControllers {
       const friendStatus = await ProfileModels.checkFriendStatus(userId, friendId);
       const unreadCount = await NotificationModel.getUnreadCount(userId);
       const hasLiked = await ProfileModels.hasUserLiked(userId, friendId);
-      const gallery = await ProfileModels.getGallery(friendId); // جلب بيانات المعرض
+      const gallery = await ProfileModels.getGallery(friendId);
 
-      // دمج الطريقتين: إذا كان avatar يحتوي على المسار الكامل، استخدمه كما هو، وإلا أضف المسار
       user.avatar = user.avatar ? (user.avatar.includes('/uploads/avatars/') ? user.avatar : `/uploads/avatars/${user.avatar}`) : '/uploads/images/pngwing.com.png';
       user.liked = hasLiked;
-
-      console.log("Raw avatar from database (JWT):", user.avatar);
-      console.log("Avatar passed to template (JWT):", user.avatar);
 
       res.render("profile", { 
         user, 
@@ -83,13 +79,13 @@ class ProfileControllers {
         userId, 
         currentUserAvatar, 
         unreadCount,
-        gallery // تمرير بيانات المعرض إلى القالب
+        gallery
       });
     } catch (error) {
-      console.error("Error displaying profile:", error);
       res.status(500).send("حدث خطأ أثناء عرض الملف الشخصي.");
     }
   }
+
   static async GetUpdateProfileControllers(req, res) {
     try {
       const token = req.cookies.token;
@@ -110,7 +106,6 @@ class ProfileControllers {
         unreadCount 
       });
     } catch (error) {
-      console.error("Error displaying update profile page:", error);
       res.status(500).send("حدث خطأ أثناء عرض صفحة تعديل الملف الشخصي.");
     }
   }
@@ -153,7 +148,6 @@ class ProfileControllers {
       if (result && result.affectedRows > 0) res.redirect("/profile");
       else res.status(400).send("فشل في تحديث الملف الشخصي");
     } catch (error) {
-      console.error("Error updating profile:", error);
       res.status(500).send("حدث خطأ أثناء تحديث الملف الشخصي.");
     }
   }
@@ -180,7 +174,6 @@ class ProfileControllers {
         res.status(400).send(result.message || "حدث خطأ أثناء تحديث الإعجاب.");
       }
     } catch (error) {
-      console.error("Error in toggleLike:", error);
       res.status(500).send("حدث خطأ في الخادم.");
     }
   }
@@ -208,7 +201,6 @@ class ProfileControllers {
 
       res.status(400).json({ success: false, message: "الإجراء غير صالح" });
     } catch (error) {
-      console.error("Error in handleFriendAction:", error);
       res.status(500).send("حدث خطأ في الخادم.");
     }
   }
@@ -227,7 +219,6 @@ class ProfileControllers {
       if (result) res.json({ success: true });
       else res.json({ success: false });
     } catch (error) {
-      console.error("Error updating quote:", error);
       res.status(500).json({ success: false });
     }
   }
@@ -253,7 +244,6 @@ class ProfileControllers {
         unreadCount 
       });
     } catch (error) {
-      console.error("Error loading profile:", error);
       res.status(500).send("Internal Server Error");
     }
   }

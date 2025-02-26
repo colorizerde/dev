@@ -86,7 +86,7 @@ class ChatModel {
 
   static async getUserById(userId) {
     const query = `
-      SELECT id, name, avatar, age, gender, country, language, occupation, quote, phone, email, portfolio
+      SELECT id, name, avatar, age, gender, country, language, occupation, quote, phone, email, portfolio, last_active
       FROM users
       WHERE id = ?
     `;
@@ -197,16 +197,13 @@ class ChatModel {
       });
     });
   }
-  static async getUnreadCount(userId) {
+
+  static async updateLastActive(userId) {
+    const query = `UPDATE users SET last_active = NOW() WHERE id = ?`;
     return new Promise((resolve, reject) => {
-      const query = `
-        SELECT COUNT(*) as unread 
-        FROM messages 
-        WHERE receiver_id = ? AND is_read = 0
-      `;
-      db.query(query, [userId], (error, results) => {
-        if (error) return reject(error);
-        resolve(results[0].unread);
+      db.query(query, [userId], (err, result) => {
+        if (err) return reject(err);
+        resolve(result.affectedRows > 0);
       });
     });
   }

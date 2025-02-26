@@ -8,14 +8,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary-color: #6a1b9a; /* بنفسجي غامق */
-      --secondary-color: #9c27b0; /* بنفسجي فاتح */
-      --background-color: #f3e5f5; /* بنفسجي فاتح جدًا للخلفية */
-      --text-color: #4a148c; /* بنفسجي غامق للنصوص */
-      --button-color: #7b1fa2; /* بنفسجي متوسط للأزرار */
-      --button-hover-color: #4a148c; /* بنفسجي غامق عند التمرير */
-      --border-color: #d1c4e9; /* بنفسجي فاتح للحدود */
-      --shadow-color: rgba(106, 27, 154, 0.2); /* ظلال بنفسجية */
+      --primary-color: #6c5ce7; /* بنفسجي غامق */
+      --secondary-color: #8e7bff; /* بنفسجي فاتح */
+      --background-color: #f7f9fc; /* خلفية فاتحة متناسقة */
+      --text-color: #2d3748; /* لون النص الأساسي */
+      --muted-text: #718096; /* لون النصوص الثانوية */
+      --border-color: #e2e8f0; /* حدود خفيفة */
+      --shadow-color: rgba(108, 92, 231, 0.2); /* ظلال بنفسجية */
+      --accent-color: #ff7675; /* لون الإغلاق */
+      --card-bg: #ffffff; /* خلفية البطاقات */
+      --transition: 0.3s ease;
     }
 
     * {
@@ -26,7 +28,7 @@
     }
 
     body {
-    
+      background-color: var(--background-color);
       color: var(--text-color);
       line-height: 1.6;
     }
@@ -66,11 +68,11 @@
     }
 
     .application-card {
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 8px 16px var(--shadow-color);
       padding: 25px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform var(--transition), box-shadow var(--transition);
       position: relative;
       overflow: hidden;
       border: 1px solid var(--border-color);
@@ -89,7 +91,7 @@
       width: 5px;
       height: 100%;
       background: var(--secondary-color);
-      transition: width 0.3s ease;
+      transition: width var(--transition);
     }
 
     .application-card:hover::before {
@@ -102,10 +104,10 @@
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid var(--secondary-color);
-      transition: transform 0.3s ease;
+      transition: transform var(--transition);
     }
 
-    .applicant-avatar:hover {
+    .application-card:hover .applicant-avatar {
       transform: scale(1.05);
     }
 
@@ -124,24 +126,24 @@
       font-size: 1.6rem;
       font-weight: 500;
       color: var(--primary-color);
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
 
     .application-details h3 a {
       color: var(--primary-color);
       text-decoration: none;
-      transition: color 0.3s ease;
+      transition: color var(--transition);
     }
 
     .application-details h3 a:hover {
-      color: var(--button-hover-color);
+      color: var(--accent-color);
     }
 
     .application-details p {
       font-size: 1rem;
-      color: #666;
-      margin-bottom: 10px;
-      line-height: 1.4;
+      color: var(--muted-text);
+      margin-bottom: 12px;
+      line-height: 1.6;
     }
 
     .application-details p strong {
@@ -152,9 +154,9 @@
     .no-applications {
       text-align: center;
       font-size: 1.2rem;
-      color: #666;
+      color: var(--muted-text);
       padding: 40px;
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 8px 16px var(--shadow-color);
     }
@@ -214,6 +216,8 @@
       <% } %>
     </div>
   </div>
-</body>
-<footer><%- include('partials/footer') %></footer>
+
+  <footer style="margin-top: 60vh">
+    <%- include('partials/footer') %>
+  </footer>
 </html>

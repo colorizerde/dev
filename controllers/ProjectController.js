@@ -1,44 +1,82 @@
 const Project = require("../models/Project");
 const MessagesProject = require("../models/MessagesProject");
+const NotificationModel = require("../models/NotificationModel");
 
 class ProjectController {
   static getCreateProject(req, res) {
-    res.render("create_project");
+    res.render("create_project", {
+      errorMessage: null,
+      successMessage: null,
+      projectData: {}
+    });
   }
 
   static async postCreateProject(req, res) {
     try {
+      const userId = req.user.id;
+
+      const canAddProject = await NotificationModel.canUserAddProject(userId);
+      if (!canAddProject.canAddProject) {
+        return res.status(403).render("create_project", {
+          errorMessage: canAddProject.message,
+          successMessage: null,
+          projectData: req.body
+        });
+      }
+
       const { projectTitle, manualDescription, budget, duration } = req.body;
 
       if (!projectTitle || !manualDescription || !budget || !duration) {
-        return res.status(400).send("يرجى ملء جميع الحقول المطلوبة");
+        return res.status(400).render("create_project", {
+          errorMessage: "يرجى ملء جميع الحقول المطلوبة",
+          successMessage: null,
+          projectData: req.body
+        });
       }
 
-      const userId = req.user.id;
+      const budgetValue = parseFloat(budget);
+      const durationValue = parseInt(duration, 10);
+      if (isNaN(budgetValue) || budgetValue <= 0 || isNaN(durationValue) || durationValue <= 0) {
+        return res.status(400).render("create_project", {
+          errorMessage: "الميزانية ومدة التنفيذ يجب أن تكونا قيماً صحيحة وموجبة",
+          successMessage: null,
+          projectData: req.body
+        });
+      }
 
       const projectData = {
         title: projectTitle,
         description: manualDescription.trim(),
-        budget: parseFloat(budget),
-        duration: parseInt(duration, 10),
+        budget: budgetValue,
+        duration: durationValue,
         user_id: userId,
       };
 
       await Project.create(projectData);
       res.redirect("/projects");
     } catch (error) {
-      console.error("خطأ أثناء إضافة المشروع:", error);
-      res.status(500).send("حدث خطأ في الخادم");
+      res.status(500).render("create_project", {
+        errorMessage: error.message || "حدث خطأ في الخادم أثناء إضافة المشروع",
+        successMessage: null,
+        projectData: req.body
+      });
     }
   }
 
   static async getAllProjects(req, res) {
     try {
       const projects = await Project.findAll();
-      res.render("projects", { projects });
+      res.render("projects", { 
+        projects,
+        errorMessage: null,
+        successMessage: null
+      });
     } catch (error) {
-      console.error("خطأ أثناء جلب المشاريع:", error);
-      res.status(500).send("حدث خطأ أثناء جلب المشاريع");
+      res.status(500).render("projects", {
+        projects: [],
+        errorMessage: "حدث خطأ أثناء جلب المشاريع",
+        successMessage: null
+      });
     }
   }
 
@@ -47,12 +85,23 @@ class ProjectController {
       const projectId = req.params.id;
       const project = await Project.getProjectById(projectId);
       if (!project) {
-        return res.status(404).send("المشروع غير موجود");
+        return res.status(404).render("project-details", {
+          project: null,
+          errorMessage: "المشروع غير موجود",
+          successMessage: null
+        });
       }
-      res.render("project-details", { project });
+      res.render("project-details", { 
+        project,
+        errorMessage: null,
+        successMessage: null
+      });
     } catch (error) {
-      console.error("خطأ أثناء جلب تفاصيل المشروع:", error);
-      res.status(500).send("حدث خطأ أثناء جلب تفاصيل المشروع");
+      res.status(500).render("project-details", {
+        project: null,
+        errorMessage: "حدث خطأ أثناء جلب تفاصيل المشروع",
+        successMessage: null
+      });
     }
   }
 
@@ -60,14 +109,6 @@ class ProjectController {
     try {
       const { project_id, applicant_name, applicant_email, motivation } = req.body;
       const applicant_id = req.user.id;
-
-      console.log("بيانات الطلب الواردة:", {
-        project_id,
-        applicant_name,
-        applicant_email,
-        motivation,
-        applicant_id,
-      });
 
       const project = await Project.findById(project_id);
       if (!project) {
@@ -93,27 +134,35 @@ class ProjectController {
       };
 
       await Project.createApplication(applicationData);
-      console.log("تم حفظ الطلب بنجاح في قاعدة البيانات");
-
       res.json({ success: true, message: "تم إرسال الطلب بنجاح!" });
     } catch (error) {
-      console.error("تفاصيل الخطأ:", error);
-      res.status(500).json({ success: false, message: "حدث خطأ في الخادم", error: error.message });
+      res.status(500).json({ success: false, message: error.message || "حدث خطأ في الخادم" });
     }
   }
 
   static async getProjectRequests(req, res) {
     try {
-      if (!req.user || !req.user.id) {
-        return res.status(401).send("غير مصرح لك بالوصول إلى هذه الصفحة");
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).render("project_requests", {
+          requests: [],
+          errorMessage: "غير مصرح لك بالوصول إلى هذه الصفحة",
+          successMessage: null
+        });
       }
 
-      const userId = req.user.id;
       const requests = await Project.getProjectRequests(userId);
-      res.render("project_requests", { requests });
+      res.render("project_requests", { 
+        requests,
+        errorMessage: null,
+        successMessage: null
+      });
     } catch (error) {
-      console.error("خطأ أثناء جلب طلبات المشروع:", error);
-      res.status(500).send("حدث خطأ أثناء جلب طلبات المشروع");
+      res.status(500).render("project_requests", {
+        requests: [],
+        errorMessage: "حدث خطأ أثناء جلب طلبات المشروع",
+        successMessage: null
+      });
     }
   }
 
@@ -147,9 +196,7 @@ class ProjectController {
         conversation_id: requestId,
       };
 
-      console.log("بيانات المحادثة المرسلة:", conversationData);
       const conversation = await MessagesProject.create(conversationData);
-      console.log("نتيجة إنشاء المحادثة:", conversation);
 
       res.json({
         success: true,
@@ -157,8 +204,7 @@ class ProjectController {
         conversationId: conversation.insertId || requestId,
       });
     } catch (error) {
-      console.error("خطأ أثناء قبول الطلب:", error.message, error.stack);
-      res.status(500).json({ success: false, message: "حدث خطأ في الخادم", error: error.message });
+      res.status(500).json({ success: false, message: error.message || "حدث خطأ في الخادم" });
     }
   }
 
@@ -188,8 +234,7 @@ class ProjectController {
         message: "تم رفض الطلب بنجاح",
       });
     } catch (error) {
-      console.error("خطأ أثناء رفض الطلب:", error.message, error.stack);
-      res.status(500).json({ success: false, message: "حدث خطأ في الخادم", error: error.message });
+      res.status(500).json({ success: false, message: error.message || "حدث خطأ في الخادم" });
     }
   }
 
@@ -202,7 +247,6 @@ class ProjectController {
 
       res.json({ success: true, message: "تم تحديث حالة الطلب بنجاح" });
     } catch (error) {
-      console.error("خطأ أثناء تحديث حالة الطلب:", error);
       res.status(500).json({ success: false, message: "حدث خطأ في الخادم" });
     }
   }
