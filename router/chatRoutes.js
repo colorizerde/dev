@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const ChatController = require("../controllers/chatController");
+const ChatController = require("../controllers/ChatController");
 
 const router = express.Router();
 
