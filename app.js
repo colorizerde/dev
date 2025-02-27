@@ -4,7 +4,7 @@ const path = require("path");
 const multer = require("multer");
 const session = require("express-session");
 const NotificationModel = require("./models/NotificationModel");
-const forumRouter = require("./router/forumRoutes");
+
 const userRouter = require("./router/UsersRouter");
 const GlobalRoleController = require("./controllers/GlobalRoleController");
 
@@ -79,7 +79,7 @@ app.use((req, res, next) => {
 
 // دمج الراوترات الأساسية
 app.use("/", userRouter);
-app.use("/forum", forumRouter);
+
 
 // مسار اختبار بسيط
 app.get("/", (req, res) => {
